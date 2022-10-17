@@ -1,0 +1,26 @@
+{
+  "name": "gosk-api",
+  "version": "0.0.1",
+  "description": "Go Starter Kit for HTTP API Applications",
+  "engines": {
+    "node": ">=18.x"
+  },
+  "keywords": [
+    "api",
+    "go",
+    "golang",
+    "http",
+    "starter kit",
+    "web"
+  ],
+  "author": "Jason Sites <email@jasonsites.com> (https://github.com/jasonsites)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonsites/gosk-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jasonsites/gosk-api/issues"
+  },
+  "homepage": "https://github.com/jasonsites/gosk-api#readme"
+}
