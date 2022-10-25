@@ -1,0 +1,22 @@
+
+[httpapi]
+baseURL = "localhost"
+namespace = "domain"
+port = 9202
+version = 1
+
+[logger.app]
+enabled = "true"
+label = "primary"
+level = "info"
+
+[postgres]
+database = "db"
+host = "localhost"
+password = "postgres"
+port = 5432
+user = "postgres"
+
+[services.example.api]
+baseURL = "http://www.google.com"
+timeout = 25000
