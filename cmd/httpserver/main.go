@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/jasonsites/gosk-api/internal/resolver"
 	_ "github.com/lib/pq"
@@ -10,7 +10,7 @@ import (
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
-			panic(fmt.Errorf("app recovery failed: %v", err))
+			log.Fatalf("app recovery failed: %v", err)
 		}
 	}()
 	r := resolver.NewResolver(nil)

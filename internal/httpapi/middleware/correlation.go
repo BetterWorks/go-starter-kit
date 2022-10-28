@@ -7,7 +7,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type CorrelationHeaders struct {
+type Trace struct {
+	Headers   TracingHeaders `json:"headers"`
+	RequestID string         `json:"requestId"`
+}
+
+type TracingHeaders struct {
 	XRequestID      string `header:"x-request-id"`
 	XB3TraceID      string `header:"x-b3-traceid"`
 	XB3SpanID       string `header:"x-b3-spanid"`
@@ -17,12 +22,13 @@ type CorrelationHeaders struct {
 	XOTSpanContext  string `header:"x-ot-span-context"`
 }
 
+// TODO https://opentracing.io/
 func Correlation() gin.HandlerFunc {
-	getTracingHeaders := func(ctx *gin.Context) *CorrelationHeaders {
-		headers := &CorrelationHeaders{}
+	getTracingHeaders := func(ctx *gin.Context) *TracingHeaders {
+		headers := &TracingHeaders{}
 
 		if err := ctx.ShouldBindHeader(headers); err != nil {
-			fmt.Printf("%v\n", headers) // @TODO
+			fmt.Printf("error binding `headers`: %+v\n", headers) // TODO
 		}
 
 		return headers
@@ -30,16 +36,17 @@ func Correlation() gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		headers := getTracingHeaders(ctx)
-
 		if headers.XRequestID == "" {
 			headers.XRequestID = uuid.NewString()
 		}
 
-		ctx.Set("correlation", gin.H{
-			"headers":   *headers,
-			"requestId": headers.XRequestID,
-		})
-		ctx.Header("X-Request-ID", headers.XRequestID)
+		trace := Trace{
+			Headers:   *headers,
+			RequestID: headers.XRequestID,
+		}
+
+		ctx.Set("trace", trace)
+		ctx.Header("x-request-id", trace.RequestID)
 		ctx.Next()
 	}
 }
