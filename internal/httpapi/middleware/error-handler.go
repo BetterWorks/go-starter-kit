@@ -22,9 +22,9 @@ func ErrorHandler() gin.HandlerFunc {
 		for _, err := range ctx.Errors {
 			fmt.Printf("%v", err)
 			errors = append(errors, ErrorData{
-				Status: "", // @TODO
-				Source: "", // @TODO { "pointer": "/data/properties/name" }
-				Title:  "", // @TODO "ValidationError"
+				Status: "", // TODO
+				Source: "", // TODO { "pointer": "/data/properties/name" }
+				Title:  "", // TODO "ValidationError"
 				Detail: err.Error(),
 			})
 		}

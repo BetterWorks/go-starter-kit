@@ -22,13 +22,15 @@ type HttpAPI struct {
 }
 
 type Logger struct {
-	App LoggerConfig `validate:"required"`
+	App        LoggerConfig `validate:"required"`
+	Http       LoggerConfig `validate:"required"`
+	Repo       LoggerConfig `validate:"required"`
+	SvcExample LoggerConfig `validate:"required"`
 }
 
 type LoggerConfig struct {
 	Enabled bool   `validate:"oneof=false true"`
-	Label   string `validate:"required"`
-	Level   string `validate:"oneof=debug info warn error fatal"`
+	Level   string `validate:"oneof=trace debug info warn error fatal panic"`
 }
 
 type Postgres struct {
@@ -68,12 +70,36 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `HTTPAPI_PORT`: %v", err)
 	}
 
-	// logger
+	// logger - app
 	if err := viper.BindEnv("logger.app.enabled", "LOGGER_APP_ENABLED"); err != nil {
 		log.Fatalf("error binding env var `LOGGER_APP_ENABLED`: %v", err)
 	}
 	if err := viper.BindEnv("logger.app.level", "LOGGER_APP_LEVEL"); err != nil {
 		log.Fatalf("error binding env var `LOGGER_APP_LEVEL`: %v", err)
+	}
+
+	// logger - http
+	if err := viper.BindEnv("logger.http.enabled", "LOGGER_HTTP_ENABLED"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_HTTP_ENABLED`: %v", err)
+	}
+	if err := viper.BindEnv("logger.http.level", "LOGGER_HTTP_LEVEL"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_HTTP_LEVEL`: %v", err)
+	}
+
+	// logger - domain
+	if err := viper.BindEnv("logger.domain.enabled", "LOGGER_DOMAIN_ENABLED"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_DOMAIN_ENABLED`: %v", err)
+	}
+	if err := viper.BindEnv("logger.domain.level", "LOGGER_DOMAIN_LEVEL"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_DOMAIN_LEVEL`: %v", err)
+	}
+
+	// logger - repo
+	if err := viper.BindEnv("logger.repo.enabled", "LOGGER_REPO_ENABLED"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_REPO_ENABLED`: %v", err)
+	}
+	if err := viper.BindEnv("logger.repo.level", "LOGGER_REPO_LEVEL"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_REPO_LEVEL`: %v", err)
 	}
 
 	// postgres
@@ -93,7 +119,7 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `POSTGRES_USER`: %v", err)
 	}
 
-	// service example
+	// service - example
 	if err := viper.BindEnv("services.example.baseURL", "SVC_EXAMPLE_BASEURL"); err != nil {
 		log.Fatalf("error binding env var `SVC_EXAMPLE_BASEURL`: %v", err)
 	}
@@ -108,6 +134,8 @@ func LoadConfiguration() (*Configuration, error) {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatalf("error unmarshalling configuration: %v", err)
 	}
+
+	// fmt.Printf("\n%+v\n", config)
 
 	return &config, nil
 }

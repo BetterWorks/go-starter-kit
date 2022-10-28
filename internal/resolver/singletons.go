@@ -2,12 +2,15 @@ package resolver
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
+	"os"
+
+	"github.com/rs/zerolog"
 
 	"github.com/jasonsites/gosk-api/config"
+	"github.com/jasonsites/gosk-api/internal/core"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
 	"github.com/jasonsites/gosk-api/internal/validation"
-	"github.com/sirupsen/logrus"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -15,7 +18,7 @@ func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
 		c, err := config.LoadConfiguration()
 		if err != nil {
-			panic(fmt.Errorf("error resolving config: %v", err))
+			log.Panicf("error resolving config: %v", err)
 		}
 
 		r.config = c
@@ -28,13 +31,17 @@ func (r *Resolver) Config() *config.Configuration {
 func (r *Resolver) HTTPServer() *httpapi.Server {
 	if r.httpServer == nil {
 		server, err := httpapi.NewServer(&httpapi.Config{
-			BaseURL:   r.Config().HttpAPI.BaseURL,
-			Log:       r.Log(),
-			Namespace: r.Config().HttpAPI.Namespace,
-			Port:      r.Config().HttpAPI.Port,
+			BaseURL: r.config.HttpAPI.BaseURL,
+			Logger: &core.Logger{
+				Enabled: r.config.Logger.Http.Enabled,
+				Level:   r.config.Logger.Http.Level,
+				Log:     r.log,
+			},
+			Namespace: r.config.HttpAPI.Namespace,
+			Port:      r.config.HttpAPI.Port,
 		})
 		if err != nil {
-			panic(fmt.Errorf("error resolving grpc server: %v", err))
+			log.Panicf("error resolving grpc server: %v", err)
 		}
 
 		r.httpServer = server
@@ -43,26 +50,16 @@ func (r *Resolver) HTTPServer() *httpapi.Server {
 	return r.httpServer
 }
 
-// Log provides a singleton logrus.FieldLogger instance
-func (r *Resolver) Log() logrus.FieldLogger {
+// Log provides a singleton zerolog.Logger instance
+func (r *Resolver) Log() *zerolog.Logger {
 	if r.log == nil {
-		r.log = logrus.WithFields(logrus.Fields{
-			"name":    r.metadata.Name,
-			"version": r.metadata.Version,
-		})
+		logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().
+			Int("pid", os.Getpid()).
+			Str("name", r.metadata.Name).
+			Str("version", r.metadata.Version).
+			Timestamp().Logger()
 
-		logrus.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: "2006-01-02T15:04:05.999Z07:00",
-			FieldMap: logrus.FieldMap{
-				logrus.FieldKeyLevel: "plevel",
-			},
-		})
-
-		level, err := logrus.ParseLevel(r.Config().Logger.App.Level)
-		if err != nil {
-			level = logrus.InfoLevel
-		}
-		logrus.SetLevel(level)
+		r.log = &logger
 	}
 
 	return r.log
@@ -71,13 +68,13 @@ func (r *Resolver) Log() logrus.FieldLogger {
 // PostgresClient provides a singleton postgres sql.DB instance
 func (r *Resolver) PostgreSQLClient() *sql.DB {
 	if r.postgreSQLClient == nil {
-		if err := validation.Validate.StructPartial(r.Config(), "Postgres"); err != nil {
-			panic(fmt.Errorf("invalid postgres config: %v", err))
+		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
+			log.Panicf("invalid postgres config: %v", err)
 		}
 
 		db, err := sql.Open("postgres", postgresDSN(r.config.Postgres))
 		if err != nil {
-			panic(fmt.Errorf("error resolving postgres client: %v", err))
+			log.Panicf("error resolving postgres client: %v", err)
 		}
 
 		r.postgreSQLClient = db

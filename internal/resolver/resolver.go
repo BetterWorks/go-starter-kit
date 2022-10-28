@@ -3,19 +3,19 @@ package resolver
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 )
 
 // Config defines the input to NewResolver
 type Config struct {
 	Config           *config.Configuration
 	HTTPServer       *httpapi.Server
-	Log              logrus.FieldLogger
+	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *sql.DB
 }
@@ -30,7 +30,7 @@ type Metadata struct {
 type Resolver struct {
 	config           *config.Configuration
 	httpServer       *httpapi.Server
-	log              logrus.FieldLogger
+	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *sql.DB
 }
@@ -49,6 +49,7 @@ func NewResolver(c *Config) *Resolver {
 		postgreSQLClient: c.PostgreSQLClient,
 	}
 
+	// register baseline singletons
 	r.Metadata()
 	r.Config()
 	r.Log()
@@ -63,11 +64,11 @@ func (r *Resolver) Metadata() *Metadata {
 
 		jsondata, err := os.ReadFile("/app/package.json")
 		if err != nil {
-			fmt.Printf("error reading package.json file, %v:", err)
+			log.Printf("error reading package.json file, %v:", err)
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			fmt.Printf("error unmarshalling package.json, %v:", err)
+			log.Printf("error unmarshalling package.json, %v:", err)
 		}
 
 		r.metadata = metadata

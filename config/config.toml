@@ -6,8 +6,19 @@ port = 9202
 version = 1
 
 [logger.app]
-enabled = "true"
-label = "primary"
+enabled = true
+level = "info"
+
+[logger.domain]
+enabled = false
+level = "info"
+
+[logger.http]
+enabled = true
+level = "info"
+
+[logger.repo]
+enabled = true
 level = "info"
 
 [postgres]
@@ -17,6 +28,6 @@ password = "postgres"
 port = 5432
 user = "postgres"
 
-[services.example.api]
+[services.example]
 baseURL = "http://www.google.com"
 timeout = 25000

@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"log"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 )
 
 func ResponseTime() gin.HandlerFunc {
@@ -12,6 +13,8 @@ func ResponseTime() gin.HandlerFunc {
 		start := time.Now()
 		ctx.Next()
 		elapsed := time.Since(start).Milliseconds()
-		log.Printf("%v", elapsed)
+		rt := strconv.FormatInt(int64(elapsed), 10) + "ms"
+		log := ctx.MustGet("log").(zerolog.Logger)
+		log.Info().Str("responseTime", rt).Send()
 	}
 }
