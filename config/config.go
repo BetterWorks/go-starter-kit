@@ -10,14 +10,16 @@ import (
 type Configuration struct {
 	HttpAPI  HttpAPI  `validate:"required"`
 	Logger   Logger   `validate:"required"`
+	Metadata Metadata `validate:"required"`
 	Postgres Postgres `validate:"required"`
 	Services Services `validate:"required"`
 }
 
 type HttpAPI struct {
 	BaseURL   string
-	Namespace string
-	Port      uint `validate:"max=65535"`
+	Mode      string `validate:"required,oneof=debug release test"`
+	Namespace string `validate:"required"`
+	Port      uint   `validate:"required,max=65535"`
 	Version   uint
 }
 
@@ -29,15 +31,19 @@ type Logger struct {
 }
 
 type LoggerConfig struct {
-	Enabled bool   `validate:"oneof=false true"`
-	Level   string `validate:"oneof=trace debug info warn error fatal panic"`
+	Enabled bool   `validate:"required,oneof=false true"`
+	Level   string `validate:"required,oneof=trace debug info warn error fatal panic"`
+}
+
+type Metadata struct {
+	Path string `validate:"required"`
 }
 
 type Postgres struct {
 	Database string `validate:"required"`
 	Host     string `validate:"required"`
 	Password string `validate:"required"`
-	Port     uint   `validate:"max=65535"`
+	Port     uint   `validate:"required,max=65535"`
 	User     string `validate:"required"`
 }
 
@@ -63,6 +69,9 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.AllowEmptyEnv(true)
 
 	// http api
+	if err := viper.BindEnv("httpapi.mode", "HTTPAPI_MODE"); err != nil {
+		log.Fatalf("error binding env var `HTTPAPI_MODE`: %v", err)
+	}
 	if err := viper.BindEnv("httpapi.baseURL", "HTTPAPI_BASEURL"); err != nil {
 		log.Fatalf("error binding env var `HTTPAPI_BASEURL`: %v", err)
 	}
@@ -100,6 +109,11 @@ func LoadConfiguration() (*Configuration, error) {
 	}
 	if err := viper.BindEnv("logger.repo.level", "LOGGER_REPO_LEVEL"); err != nil {
 		log.Fatalf("error binding env var `LOGGER_REPO_LEVEL`: %v", err)
+	}
+
+	// metadata
+	if err := viper.BindEnv("metadata.path", "METADATA_PATH"); err != nil {
+		log.Fatalf("error binding env var `METADATA_PATH`: %v", err)
 	}
 
 	// postgres

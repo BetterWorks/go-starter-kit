@@ -49,12 +49,17 @@ func NewResolver(c *Config) *Resolver {
 		postgreSQLClient: c.PostgreSQLClient,
 	}
 
-	// register baseline singletons
-	r.Metadata()
-	r.Config()
-	r.Log()
+	r.initialize()
 
 	return r
+}
+
+func (r *Resolver) initialize() {
+	r.Config()
+	r.Metadata()
+	r.Log()
+	r.PostgreSQLClient()
+	r.HTTPServer()
 }
 
 // Metadata provides a singleton application Metadata instance
@@ -62,7 +67,7 @@ func (r *Resolver) Metadata() *Metadata {
 	if r.metadata == nil {
 		var metadata *Metadata
 
-		jsondata, err := os.ReadFile("/app/package.json")
+		jsondata, err := os.ReadFile(r.config.Metadata.Path)
 		if err != nil {
 			log.Printf("error reading package.json file, %v:", err)
 		}

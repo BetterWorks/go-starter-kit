@@ -37,6 +37,7 @@ func (r *Resolver) HTTPServer() *httpapi.Server {
 				Level:   r.config.Logger.Http.Level,
 				Log:     r.log,
 			},
+			Mode:      r.config.HttpAPI.Mode,
 			Namespace: r.config.HttpAPI.Namespace,
 			Port:      r.config.HttpAPI.Port,
 		})

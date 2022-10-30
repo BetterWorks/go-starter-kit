@@ -16,6 +16,7 @@ import (
 type Config struct {
 	BaseURL   string       `validate:"required"`
 	Logger    *core.Logger `validate:"required"`
+	Mode      string       `validate:"required"`
 	Namespace string       `validate:"required"`
 	Port      uint         `validate:"required"`
 }
@@ -36,6 +37,7 @@ func NewServer(c *Config) (*Server, error) {
 		return nil, err
 	}
 
+	gin.SetMode(c.Mode)
 	r := gin.New()
 	ctrl := newController()
 
