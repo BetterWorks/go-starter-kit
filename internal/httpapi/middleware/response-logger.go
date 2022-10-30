@@ -11,16 +11,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// ResponseAndLogWriter extends gin.ResponseWriter with a bytes.Buffer for the response body
-type ResponseAndLogWriter struct {
+// ExtendedResponseWriter extends gin.ResponseWriter with a bytes.Buffer to capture the response body
+type ExtendedResponseWriter struct {
 	gin.ResponseWriter
-	Body *bytes.Buffer
+	BodyLogBuffer *bytes.Buffer
 }
 
-// Write extends ResponseWriter.Write by first adding response body to the ResponseAndLogWriter.Body buffer
-func (rw *ResponseAndLogWriter) Write(b []byte) (int, error) {
-	rw.Body.Write(b)
-	return rw.ResponseWriter.Write(b)
+// Write extends ResponseWriter.Write by first capturing response body to the ExtendedResponseWriter.BodyLogBuffer
+func (erw *ExtendedResponseWriter) Write(b []byte) (int, error) {
+	erw.BodyLogBuffer.Write(b)
+	return erw.ResponseWriter.Write(b)
 }
 
 // ResponseLogData defines the data captured for response logging
@@ -35,26 +35,25 @@ type ResponseLogData struct {
 // ResponseLogger
 func ResponseLogger(logger *core.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		rw := &ResponseAndLogWriter{
-			Body:           bytes.NewBufferString(""),
+		erw := &ExtendedResponseWriter{
+			BodyLogBuffer:  bytes.NewBufferString(""),
 			ResponseWriter: ctx.Writer,
 		}
-		ctx.Writer = rw
+		ctx.Writer = erw
 
 		ctx.Next()
 
 		if logger.Enabled {
-			reqLD := ctx.MustGet("RequestLogData").(RequestLogData)
 			trace := ctx.MustGet("Trace").(Trace)
 			log := logger.Log.With().Str("req_id", trace.RequestID).Logger()
 
-			body := rw.Body.Bytes()
-			headers, err := json.Marshal(rw.Header())
+			body := erw.BodyLogBuffer.Bytes()
+			headers, err := json.Marshal(erw.Header())
 			if err != nil {
 				log.Error().Err(err)
 			}
 
-			data := newResponseLogData(ctx, body, headers, reqLD.Start)
+			data := newResponseLogData(ctx, body, headers)
 			event := newResponseLogEvent(data, logger.Level, log)
 			event.Send()
 		}
@@ -62,7 +61,8 @@ func ResponseLogger(logger *core.Logger) gin.HandlerFunc {
 }
 
 // newResponseLogData
-func newResponseLogData(ctx *gin.Context, body, headers []byte, start time.Time) ResponseLogData {
+func newResponseLogData(ctx *gin.Context, body, headers []byte) ResponseLogData {
+	start := ctx.MustGet("RequestLogData").(RequestLogData).Start
 	elapsed := time.Since(start).Milliseconds()
 	rt := strconv.FormatInt(int64(elapsed), 10) + "ms"
 
