@@ -22,7 +22,7 @@ enabled = true
 level = "info"
 
 [postgres]
-database = "db"
+database = "svcdb"
 host = "localhost"
 password = "postgres"
 port = 5432
