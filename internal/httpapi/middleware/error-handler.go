@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ErrorData
 type ErrorData struct {
 	Status string `json:"status"`
 	Source string `json:"source"`
@@ -13,6 +14,7 @@ type ErrorData struct {
 	Detail string `json:"detail"`
 }
 
+// ErrorHandler
 func ErrorHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()

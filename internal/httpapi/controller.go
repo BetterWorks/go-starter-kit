@@ -8,6 +8,7 @@ func newController() *Controller {
 	return &Controller{}
 }
 
+// Create
 func (c *Controller) Create(ctx *gin.Context) {
 	// get correlation, type from ctx.correlation
 	// get body, method from request
@@ -17,6 +18,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 	// set body, http status, mime type (at a minimum)
 }
 
+// Delete
 func (c *Controller) Delete(ctx *gin.Context) {
 	// get correlation, type from ctx.correlation
 	// get id from path params
@@ -24,6 +26,7 @@ func (c *Controller) Delete(ctx *gin.Context) {
 	// set http status (at a minimum)
 }
 
+// Detail
 func (c *Controller) Detail(ctx *gin.Context) {
 	// get correlation, type from ctx.correlation
 	// get id from path params
@@ -32,6 +35,7 @@ func (c *Controller) Detail(ctx *gin.Context) {
 	// set body, http status, mime type (at a minimum)
 }
 
+// List
 func (c *Controller) List(ctx *gin.Context) {
 	// get correlation, type from ctx.correlation
 	// get query from request
@@ -42,6 +46,7 @@ func (c *Controller) List(ctx *gin.Context) {
 	// set body, http status, mime type (at a minimum)
 }
 
+// Update
 func (c *Controller) Update(ctx *gin.Context) {
 	// get correlation, type from ctx.correlation
 	// get id from request

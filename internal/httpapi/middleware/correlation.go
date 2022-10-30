@@ -7,11 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// Trace
 type Trace struct {
-	Headers   TracingHeaders `json:"headers"`
-	RequestID string         `json:"requestId"`
+	Headers   TracingHeaders
+	RequestID string
 }
 
+// TracingHeaders
 type TracingHeaders struct {
 	XRequestID      string `header:"x-request-id"`
 	XB3TraceID      string `header:"x-b3-traceid"`
@@ -23,6 +25,7 @@ type TracingHeaders struct {
 }
 
 // TODO https://opentracing.io/
+// Correlation
 func Correlation() gin.HandlerFunc {
 	getTracingHeaders := func(ctx *gin.Context) *TracingHeaders {
 		headers := &TracingHeaders{}
@@ -45,7 +48,7 @@ func Correlation() gin.HandlerFunc {
 			RequestID: headers.XRequestID,
 		}
 
-		ctx.Set("trace", trace)
+		ctx.Set("Trace", trace)
 		ctx.Header("x-request-id", trace.RequestID)
 		ctx.Next()
 	}

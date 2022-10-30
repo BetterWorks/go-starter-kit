@@ -39,7 +39,7 @@ func NewServer(c *Config) (*Server, error) {
 	r := gin.New()
 	ctrl := newController()
 
-	log := c.Logger.Log.With().Str("label", "httpapi").Logger()
+	log := c.Logger.Log.With().Str("module", "httpapi").Logger()
 
 	logger := &core.Logger{
 		Enabled: c.Logger.Enabled,
@@ -62,18 +62,19 @@ func NewServer(c *Config) (*Server, error) {
 	return s, nil
 }
 
+// Serve
 func (s *Server) Serve() {
 	addr := ":" + strconv.FormatUint(uint64(s.port), 10)
 	s.Router.Run(addr)
 }
 
+// configureMiddleware
 func (s *Server) configureMiddleware() {
 	r := s.Router
 
 	r.Use(gin.Recovery())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(mw.ResponseLogger(s.Logger))
-	r.Use(mw.ResponseTime())
 	// security headers
 	// "github.com/gin-contrib/cors"
 	r.Use(mw.ErrorHandler())
@@ -81,6 +82,7 @@ func (s *Server) configureMiddleware() {
 	r.Use(mw.RequestLogger(s.Logger))
 }
 
+// registerRoutes
 func (s *Server) registerRoutes() {
 	c := s.controller
 	ns := s.namespace
