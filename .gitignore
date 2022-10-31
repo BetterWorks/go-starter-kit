@@ -1,5 +1,7 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,linux,node,go,intellij+all,visualstudiocode,vim
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,node,go,intellij+all,visualstudiocode,vim
+# Created by https://www.toptal.com/developers/gitignore/api/go,vim,node,linux,macos,intellij+all,visualstudiocode,redis
+# Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,node,linux,macos,intellij+all,visualstudiocode,redis
+
+bin/
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -304,6 +306,11 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+### Redis ###
+# Ignore redis binary dump (dump.rdb) files
+
+*.rdb
+
 ### Vim ###
 # Swap
 [._]*.s[a-v][a-z]
@@ -343,4 +350,4 @@ tags
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,linux,node,go,intellij+all,visualstudiocode,vim
+# End of https://www.toptal.com/developers/gitignore/api/go,vim,node,linux,macos,intellij+all,visualstudiocode,redis
