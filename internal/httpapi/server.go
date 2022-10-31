@@ -41,7 +41,7 @@ func NewServer(c *Config) (*Server, error) {
 	r := gin.New()
 	ctrl := newController()
 
-	log := c.Logger.Log.With().Str("module", "httpapi").Logger()
+	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
 
 	logger := &core.Logger{
 		Enabled: c.Logger.Enabled,
