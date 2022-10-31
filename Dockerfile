@@ -5,7 +5,7 @@ WORKDIR /src
 COPY go.* package.json ./
 RUN go mod download && go mod verify
 COPY . .
-RUN go build -o bin/server cmd/httpserver/main.go
+RUN CGO_ENABLED=0 go build -o bin/server cmd/httpserver/main.go
 
 
 FROM alpine:3.16
