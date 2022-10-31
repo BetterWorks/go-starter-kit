@@ -47,6 +47,7 @@ services:
     ports:
       - 45432:5432
     volumes:
+      # - ./database/scripts:/docker-entrypoint-initdb.d/
       - postgres-data:/var/lib/postgresql/data
 
   redis:

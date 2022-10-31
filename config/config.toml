@@ -23,7 +23,7 @@ enabled = true
 level = "info"
 
 [metadata]
-path = "/home/app/package.json"
+path = "/app/package.json"
 
 [postgres]
 database = "svcdb"
