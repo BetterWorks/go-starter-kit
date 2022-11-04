@@ -7,17 +7,21 @@ import (
 	"os"
 
 	"github.com/jasonsites/gosk-api/config"
+	"github.com/jasonsites/gosk-api/internal/application"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
+	"github.com/jasonsites/gosk-api/internal/repo"
 	"github.com/rs/zerolog"
 )
 
 // Config defines the input to NewResolver
 type Config struct {
+	Application      *application.Application
 	Config           *config.Configuration
 	HTTPServer       *httpapi.Server
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *sql.DB
+	Repository       *repo.Repository
 }
 
 // Application metadata
@@ -28,11 +32,13 @@ type Metadata struct {
 
 // Resolver provides singleton instances of app components
 type Resolver struct {
+	application      *application.Application
 	config           *config.Configuration
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *sql.DB
+	repository       *repo.Repository
 }
 
 // NewResolver returns a new Resolver instance
@@ -42,11 +48,13 @@ func NewResolver(c *Config) *Resolver {
 	}
 
 	r := &Resolver{
+		application:      c.Application,
 		config:           c.Config,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,
 		postgreSQLClient: c.PostgreSQLClient,
+		repository:       c.Repository,
 	}
 
 	r.initialize()
@@ -59,6 +67,8 @@ func (r *Resolver) initialize() {
 	r.Metadata()
 	r.Log()
 	r.PostgreSQLClient()
+	r.Repository()
+	r.Application()
 	r.HTTPServer()
 }
 
