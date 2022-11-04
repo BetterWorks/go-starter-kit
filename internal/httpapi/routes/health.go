@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
 // Health route implements an example route group for a specific domain resource
-func Health(c Controller, ns string, r *gin.Engine) {
+func HealthRouter(r *gin.Engine, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/health"
 	g := r.Group(prefix)
 

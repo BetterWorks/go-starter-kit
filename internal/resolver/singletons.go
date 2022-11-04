@@ -8,10 +8,22 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/jasonsites/gosk-api/config"
-	"github.com/jasonsites/gosk-api/internal/core"
+	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
+	"github.com/jasonsites/gosk-api/internal/repo"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
+
+// Application provides a singleton application.Application instance
+func (r *Resolver) Application() *application.Application {
+	if r.application == nil {
+		app := application.NewApplication(r.repository)
+		r.application = app
+	}
+
+	return r.application
+}
 
 // Config provides a singleton config.Configuration instance
 func (r *Resolver) Config() *config.Configuration {
@@ -31,8 +43,9 @@ func (r *Resolver) Config() *config.Configuration {
 func (r *Resolver) HTTPServer() *httpapi.Server {
 	if r.httpServer == nil {
 		server, err := httpapi.NewServer(&httpapi.Config{
-			BaseURL: r.config.HttpAPI.BaseURL,
-			Logger: &core.Logger{
+			Application: r.application,
+			BaseURL:     r.config.HttpAPI.BaseURL,
+			Logger: &types.Logger{
 				Enabled: r.config.Logger.Http.Enabled,
 				Level:   r.config.Logger.Http.Level,
 				Log:     r.log,
@@ -42,7 +55,7 @@ func (r *Resolver) HTTPServer() *httpapi.Server {
 			Port:      r.config.HttpAPI.Port,
 		})
 		if err != nil {
-			log.Panicf("error resolving grpc server: %v", err)
+			log.Panicf("error resolving http server: %v", err)
 		}
 
 		r.httpServer = server
@@ -82,4 +95,14 @@ func (r *Resolver) PostgreSQLClient() *sql.DB {
 	}
 
 	return r.postgreSQLClient
+}
+
+// Application provides a singleton repo.Repository instance
+func (r *Resolver) Repository() *repo.Repository {
+	if r.repository == nil {
+		repo := repo.NewRepository()
+		r.repository = repo
+	}
+
+	return r.repository
 }

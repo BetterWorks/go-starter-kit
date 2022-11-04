@@ -19,19 +19,23 @@ func ErrorHandler() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
-		var errors []ErrorData
+		if len(ctx.Errors) > 0 {
+			var errors []ErrorData
 
-		for _, err := range ctx.Errors {
-			fmt.Printf("%v", err)
-			errors = append(errors, ErrorData{
-				Status: "", // TODO
-				Source: "", // TODO { "pointer": "/data/properties/name" }
-				Title:  "", // TODO "ValidationError"
-				Detail: err.Error(),
-			})
+			for _, err := range ctx.Errors {
+				fmt.Printf("%v", err)
+				errors = append(errors, ErrorData{
+					Status: "", // TODO
+					Source: "", // TODO { "pointer": "/data/properties/name" }
+					Title:  "", // TODO "ValidationError"
+					Detail: err.Error(),
+				})
+			}
+
+			fmt.Printf("ERRORS in ErrorHandler: %+v\n", errors)
+
+			// status := -1 // TODO: status passthrough ?
+			// ctx.JSON(status, gin.H{"errors": errors})
 		}
-
-		status := -1 // status passthrough
-		ctx.JSON(status, gin.H{"errors": errors})
 	}
 }

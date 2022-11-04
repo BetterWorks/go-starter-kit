@@ -31,7 +31,7 @@ services:
     ports:
       - 9204:9204
     volumes:
-      - .:/home/app
+      - .:/app
       - /app/vendor
 
   domain_db:

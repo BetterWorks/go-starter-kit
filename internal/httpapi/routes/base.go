@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
 // Base route only exists to easily verify a working app and should normally be removed
-func Base(c Controller, ns string, r *gin.Engine) {
+func BaseRouter(r *gin.Engine, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns
 	g := r.Group(prefix)
 

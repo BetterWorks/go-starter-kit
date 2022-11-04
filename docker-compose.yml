@@ -32,7 +32,7 @@ services:
     ports:
       - 9202:9202
     volumes:
-      - .:/home/app
+      - .:/app
       - /app/vendor
 
   domain_db:
