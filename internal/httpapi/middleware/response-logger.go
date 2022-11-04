@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jasonsites/gosk-api/internal/core"
+	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/rs/zerolog"
 )
 
@@ -33,7 +33,7 @@ type ResponseLogData struct {
 }
 
 // ResponseLogger
-func ResponseLogger(logger *core.Logger) gin.HandlerFunc {
+func ResponseLogger(logger *types.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		erw := &ExtendedResponseWriter{
 			BodyLogBuffer:  bytes.NewBufferString(""),
@@ -44,7 +44,7 @@ func ResponseLogger(logger *core.Logger) gin.HandlerFunc {
 		ctx.Next()
 
 		if logger.Enabled {
-			trace := ctx.MustGet("Trace").(Trace)
+			trace := ctx.MustGet("Trace").(types.Trace)
 			log := logger.Log.With().Str("req_id", trace.RequestID).Logger()
 
 			body := erw.BodyLogBuffer.Bytes()

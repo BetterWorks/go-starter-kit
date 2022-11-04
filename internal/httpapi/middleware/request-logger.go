@@ -1,18 +1,19 @@
 package middleware
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jasonsites/gosk-api/internal/core"
+	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/rs/zerolog"
 )
 
 // RequestLogData
 type RequestLogData struct {
-	Body     []byte
+	Body     string
 	ClientIP string
 	Headers  []byte
 	Method   string
@@ -21,16 +22,22 @@ type RequestLogData struct {
 }
 
 // RequestLogger
-func RequestLogger(logger *core.Logger) gin.HandlerFunc {
+func RequestLogger(logger *types.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if logger.Enabled {
-			trace := ctx.MustGet("Trace").(Trace)
+			trace := ctx.MustGet("Trace").(types.Trace)
 			log := logger.Log.With().Str("req_id", trace.RequestID).Logger()
 
-			body, err := io.ReadAll(ctx.Request.Body)
+			bodyBuf, err := io.ReadAll(ctx.Request.Body)
 			if err != nil {
 				log.Error().Err(err)
 			}
+			bodyRC1 := io.NopCloser(bytes.NewBuffer(bodyBuf))
+			bodyRC2 := io.NopCloser(bytes.NewBuffer(bodyBuf))
+
+			body := readBody(bodyRC1)
+			ctx.Request.Body = bodyRC2
+
 			headers, err := json.Marshal(ctx.Request.Header)
 			if err != nil {
 				log.Error().Err(err)
@@ -47,8 +54,14 @@ func RequestLogger(logger *core.Logger) gin.HandlerFunc {
 	}
 }
 
+func readBody(reader io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(reader)
+	return buf.String()
+}
+
 // newRequestLogData
-func newRequestLogData(ctx *gin.Context, body, headers []byte) RequestLogData {
+func newRequestLogData(ctx *gin.Context, body string, headers []byte) RequestLogData {
 	return RequestLogData{
 		Body:     body,
 		ClientIP: ctx.ClientIP(),
@@ -68,7 +81,7 @@ func newRequestLogEvent(data RequestLogData, level string, log zerolog.Logger) *
 		RawJSON("headers", data.Headers)
 
 	if level == "debug" || level == "trace" {
-		event.RawJSON("body", data.Body)
+		event.Str("body", data.Body)
 	}
 
 	return event
