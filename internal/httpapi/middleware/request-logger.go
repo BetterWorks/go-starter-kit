@@ -3,17 +3,85 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
-	"io"
+	"log"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/rs/zerolog"
 )
 
+// RequestLoggerContextKey
+var RequestLoggerContextKey string
+
+// RequestLoggerConfig
+type RequestLoggerConfig struct {
+	ContextKey string
+	Logger     *types.Logger
+	Next       func(c *fiber.Ctx) bool
+}
+
+// setRequestLoggerConfig
+func setRequestLoggerConfig(c *RequestLoggerConfig) *RequestLoggerConfig {
+	if c.Logger == nil {
+		log.Panicf("request logger middleware missing logger configuration")
+	}
+	conf := c
+
+	// override defaults
+	if c.ContextKey == "" {
+		conf.ContextKey = "RequestLogData"
+	}
+	// set exposed context key for use in other handlers
+	RequestLoggerContextKey = conf.ContextKey
+
+	return conf
+}
+
+// RequestLogger
+func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
+	conf := setRequestLoggerConfig(config)
+	logger := conf.Logger
+
+	return func(ctx *fiber.Ctx) error {
+		if conf.Next != nil && conf.Next(ctx) {
+			return ctx.Next()
+		}
+
+		if logger.Enabled {
+			requestID := ctx.Locals(CorrelationContextKey).(*types.Trace).RequestID
+			log := logger.Log.With().Str("req_id", requestID).Logger()
+
+			var body []byte
+			if len(ctx.Body()) > 0 {
+				b := new(bytes.Buffer)
+				if err := json.Compact(b, ctx.Body()); err != nil {
+					// log.Error().Err(err)
+					return err
+				}
+				body = b.Bytes()
+			}
+
+			headers, err := json.Marshal(ctx.GetReqHeaders())
+			if err != nil {
+				// log.Error().Err(err)
+				return err
+			}
+
+			data := newRequestLogData(ctx, body, headers)
+			ctx.Locals("RequestLogData", data)
+
+			event := newRequestLogEvent(data, logger.Level, log)
+			event.Send()
+		}
+
+		return ctx.Next()
+	}
+}
+
 // RequestLogData
 type RequestLogData struct {
-	Body     string
+	Body     []byte
 	ClientIP string
 	Headers  []byte
 	Method   string
@@ -21,59 +89,20 @@ type RequestLogData struct {
 	Start    time.Time
 }
 
-// RequestLogger
-func RequestLogger(logger *types.Logger) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		if logger.Enabled {
-			trace := ctx.MustGet("Trace").(types.Trace)
-			log := logger.Log.With().Str("req_id", trace.RequestID).Logger()
-
-			bodyBuf, err := io.ReadAll(ctx.Request.Body)
-			if err != nil {
-				log.Error().Err(err)
-			}
-			bodyRC1 := io.NopCloser(bytes.NewBuffer(bodyBuf))
-			bodyRC2 := io.NopCloser(bytes.NewBuffer(bodyBuf))
-
-			body := readBody(bodyRC1)
-			ctx.Request.Body = bodyRC2
-
-			headers, err := json.Marshal(ctx.Request.Header)
-			if err != nil {
-				log.Error().Err(err)
-			}
-
-			data := newRequestLogData(ctx, body, headers)
-			ctx.Set("RequestLogData", data)
-
-			event := newRequestLogEvent(data, logger.Level, log)
-			event.Send()
-		}
-
-		ctx.Next()
-	}
-}
-
-func readBody(reader io.Reader) string {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(reader)
-	return buf.String()
-}
-
 // newRequestLogData
-func newRequestLogData(ctx *gin.Context, body string, headers []byte) RequestLogData {
-	return RequestLogData{
+func newRequestLogData(ctx *fiber.Ctx, body, headers []byte) *RequestLogData {
+	return &RequestLogData{
 		Body:     body,
-		ClientIP: ctx.ClientIP(),
+		ClientIP: ctx.IP(),
 		Headers:  headers,
-		Method:   ctx.Request.Method,
-		Path:     ctx.Request.URL.String(),
+		Method:   ctx.Method(),
+		Path:     ctx.Path(),
 		Start:    time.Now(),
 	}
 }
 
 // newRequestLogEvent
-func newRequestLogEvent(data RequestLogData, level string, log zerolog.Logger) *zerolog.Event {
+func newRequestLogEvent(data *RequestLogData, level string, log zerolog.Logger) *zerolog.Event {
 	event := log.Info().
 		Str("ip", data.ClientIP).
 		Str("method", data.Method).
@@ -81,7 +110,9 @@ func newRequestLogEvent(data RequestLogData, level string, log zerolog.Logger) *
 		RawJSON("headers", data.Headers)
 
 	if level == "debug" || level == "trace" {
-		event.Str("body", data.Body)
+		if data.Body != nil {
+			event.RawJSON("body", data.Body)
+		}
 	}
 
 	return event

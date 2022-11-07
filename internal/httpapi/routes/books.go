@@ -1,21 +1,26 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/jasonsites/gosk-api/internal/core/types"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
-// Resource2Router implements an example router group for a specific domain resource
-func BookRouter(r *gin.Engine, c *ctrl.Controller, ns string) {
+// BookRouter implements an example router group for a Book domain resource
+func BookRouter(app *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/books"
 	t := types.ResourceType.Book
-	g := r.Group(prefix)
+	g := app.Group(prefix)
 
-	// g.GET("/", c.BookList(t))
-	// g.GET("/:id", c.BookDetail(t))
-	g.POST("/", c.BookCreate(t))
-	// g.PATCH("/:id", c.BookUpdate(t))
-	// g.DELETE("/:id", c.BookDelete(t))
+	// HandlerFunc wrapper that injects Book for request body data binding
+	wrapper := func(f func(any, string) fiber.Handler) fiber.Handler {
+		return f(&types.Book{}, t)
+	}
+
+	g.Get("/", c.List(t))
+	g.Get("/:id", c.Detail(t))
+	g.Post("/", wrapper(c.Create))
+	g.Patch("/:id", wrapper(c.Update))
+	g.Delete("/:id", c.Delete(t))
 }

@@ -32,8 +32,8 @@ func NewBook() Resource {
 }
 
 // Discover
-func (r Book) Discover() Resource {
-	return r
+func (b *Book) Discover() Resource {
+	return b
 }
 
 // -----------------------------------------------------------
@@ -53,8 +53,8 @@ func NewMovie() Resource {
 }
 
 // Discover
-func (r Movie) Discover() Resource {
-	return r
+func (m *Movie) Discover() Resource {
+	return m
 }
 
 // // Serialize

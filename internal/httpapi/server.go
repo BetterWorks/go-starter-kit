@@ -3,7 +3,7 @@ package httpapi
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
@@ -22,8 +22,9 @@ type Config struct {
 
 // Server defines a server for handling HTTP API requests
 type Server struct {
+	App        *fiber.App
 	Logger     *types.Logger
-	Router     *gin.Engine
+	baseURL    string
 	controller *controllers.Controller
 	namespace  string
 	port       uint
@@ -35,8 +36,7 @@ func NewServer(c *Config) (*Server, error) {
 		return nil, err
 	}
 
-	gin.SetMode(c.Mode)
-	r := gin.New()
+	app := fiber.New(fiber.Config{AppName: ""})
 
 	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
 	logger := &types.Logger{
@@ -52,7 +52,7 @@ func NewServer(c *Config) (*Server, error) {
 
 	s := &Server{
 		Logger: logger,
-		Router: r,
+		App:    app,
 		// baseURL:    c.BaseURL,
 		controller: ctrl,
 		namespace:  c.Namespace,
@@ -67,6 +67,6 @@ func NewServer(c *Config) (*Server, error) {
 
 // Serve
 func (s *Server) Serve() {
-	addr := ":" + strconv.FormatUint(uint64(s.port), 10)
-	s.Router.Run(addr)
+	addr := s.baseURL + ":" + strconv.FormatUint(uint64(s.port), 10)
+	s.App.Listen(addr)
 }

@@ -1,8 +1,10 @@
 package httpapi
 
 import (
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/helmet/v2"
 
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
 	"github.com/jasonsites/gosk-api/internal/httpapi/routes"
@@ -10,27 +12,37 @@ import (
 
 // configureMiddleware
 func (s *Server) configureMiddleware() {
-	r := s.Router
+	app := s.App
 
-	r.Use(gin.Recovery())
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
-	r.Use(mw.ResponseLogger(s.Logger))
-	// security headers
-	// "github.com/gin-contrib/cors"
-	r.Use(mw.ErrorHandler())
-	r.Use(mw.Correlation())
-	r.Use(mw.RequestLogger(s.Logger))
+	skipHealth := func(ctx *fiber.Ctx) bool {
+		return ctx.Path() == "/"+s.namespace+"/health"
+	}
+
+	app.Use(recover.New())
+	app.Use(compress.New())
+	app.Use(mw.ResponseLogger(&mw.ResponseLoggerConfig{
+		Logger: s.Logger,
+		Next:   skipHealth,
+	}))
+	app.Use(helmet.New())
+	app.Use(mw.Correlation(&mw.CorrelationConfig{
+		Next: skipHealth,
+	}))
+	app.Use(mw.RequestLogger(&mw.RequestLoggerConfig{
+		Logger: s.Logger,
+		Next:   skipHealth,
+	}))
 }
 
 // registerRoutes
 func (s *Server) registerRoutes() {
-	r := s.Router
+	app := s.App
 	c := s.controller
 	ns := s.namespace
 
-	routes.BaseRouter(r, c, ns)
-	routes.HealthRouter(r, c, ns)
+	routes.BaseRouter(app, c, ns)
+	routes.HealthRouter(app, c, ns)
 
-	routes.BookRouter(r, c, ns)
-	routes.MovieRouter(r, c, ns)
+	routes.BookRouter(app, c, ns)
+	routes.MovieRouter(app, c, ns)
 }

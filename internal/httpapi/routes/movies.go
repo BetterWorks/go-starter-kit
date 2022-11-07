@@ -1,27 +1,26 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/jasonsites/gosk-api/internal/core/types"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
-// Resource route implements an example router group for a specific domain resource
-func MovieRouter(r *gin.Engine, c *ctrl.Controller, ns string) {
+// MovieRouter implements an example router group for a Movie domain resource
+func MovieRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/movies"
 	t := types.ResourceType.Movie
-	// middlewares := []gin.HandlerFunc{mw.LocalType(t)}
 	g := r.Group(prefix)
 
-	// temp := func(ctx *gin.Context) {
-	// 	err := fmt.Errorf("some bad error happened")
-	// 	ctx.AbortWithError(http.StatusInternalServerError, err)
-	// }
+	// HandlerFunc wrapper that injects Movie for request body data binding
+	wrapper := func(f func(any, string) fiber.Handler) fiber.Handler {
+		return f(&types.Movie{}, t)
+	}
 
-	// g.GET("/", c.MovieList(t))
-	// g.GET("/:id", c.MovieDetail(t))
-	g.POST("/", c.MovieCreate(t))
-	// g.PATCH("/:id", c.MovieUpdate(t))
-	// g.DELETE("/:id", c.MovieDelete(t))
+	g.Get("/", c.List(t))
+	g.Get("/:id", c.Detail(t))
+	g.Post("/", wrapper(c.Create))
+	g.Patch("/:id", wrapper(c.Update))
+	g.Delete("/:id", c.Delete(t))
 }

@@ -1,39 +1,79 @@
 package middleware
 
 import (
-	"fmt"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/core/types"
 )
 
 // TODO https://opentracing.io/
+
+// CorrelationContextKey
+var CorrelationContextKey string
+
 // Correlation
-func Correlation() gin.HandlerFunc {
-	getTracingHeaders := func(ctx *gin.Context) *types.TracingHeaders {
-		headers := &types.TracingHeaders{}
+func Correlation(config *CorrelationConfig) fiber.Handler {
+	conf := setCorrelationConfig(config)
 
-		if err := ctx.ShouldBindHeader(headers); err != nil {
-			fmt.Printf("error binding `headers`: %+v\n", headers) // TODO
+	return func(ctx *fiber.Ctx) error {
+		if conf.Next != nil && conf.Next(ctx) {
+			return ctx.Next()
 		}
 
-		return headers
-	}
+		headers := ctx.GetReqHeaders()
 
-	return func(ctx *gin.Context) {
-		headers := getTracingHeaders(ctx)
-		if headers.XRequestID == "" {
-			headers.XRequestID = uuid.NewString()
+		requestID := ctx.Get(conf.Header, conf.Generator())
+		if headers[conf.Header] == "" {
+			headers[conf.Header] = requestID
 		}
+		ctx.Set(conf.Header, requestID)
 
 		trace := types.Trace{
-			Headers:   *headers,
-			RequestID: headers.XRequestID,
+			Headers:   headers,
+			RequestID: requestID,
 		}
+		ctx.Locals(conf.ContextKey, &trace)
 
-		ctx.Set("Trace", trace)
-		ctx.Header("x-request-id", trace.RequestID)
-		ctx.Next()
+		return ctx.Next()
 	}
+}
+
+// CorrelationConfig
+type CorrelationConfig struct {
+	// ContextKey for storing Trace data in context locals
+	ContextKey string
+
+	// Generator defines a function to generate request identifier
+	Generator func() string
+
+	// Header key for request ID get/set
+	Header string
+
+	// Next defines a function to skip this middleware on return true
+	Next func(c *fiber.Ctx) bool
+}
+
+// traceConfigDefault sets default TraceConfig values
+func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
+	var conf = &CorrelationConfig{
+		ContextKey: "Trace",
+		Generator:  uuid.NewString,
+		Header:     "X-Request-ID",
+		Next:       nil,
+	}
+	// override defaults
+	if c.Header != "" {
+		conf.Header = c.Header
+	}
+	if c.Generator != nil {
+		conf.Generator = c.Generator
+	}
+	if c.ContextKey != "" {
+		conf.ContextKey = c.ContextKey
+	}
+
+	// set exposed context key for use in other handlers
+	CorrelationContextKey = conf.ContextKey
+
+	return conf
 }

@@ -3,35 +3,33 @@ package routes
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
-// Base route only exists to easily verify a working app and should normally be removed
-func BaseRouter(r *gin.Engine, c *ctrl.Controller, ns string) {
+// BaseRouter only exists to easily verify a working app and should normally be removed
+func BaseRouter(app *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns
-	g := r.Group(prefix)
+	g := app.Group(prefix)
 
-	get := func(ctx *gin.Context) {
-		cookies := ctx.Request.Cookies()
-		headers := ctx.Request.Header
-		host := ctx.Request.Host
-		remoteAddress := ctx.Request.RemoteAddr
-		requestURI := ctx.Request.RequestURI
-		url := ctx.Request.URL.String()
+	get := func(ctx *fiber.Ctx) error {
+		headers := ctx.GetReqHeaders()
+		host := ctx.Hostname()
+		path := ctx.Path()
+		remoteAddress := ctx.Context().RemoteAddr()
 
-		ctx.IndentedJSON(http.StatusOK, gin.H{
+		ctx.Status(http.StatusOK)
+		ctx.JSON(fiber.Map{
 			"data": "base router is working...",
-			"request": gin.H{
-				"cookies":       cookies,
+			"request": fiber.Map{
 				"headers":       headers,
 				"host":          host,
+				"path":          path,
 				"remoteAddress": remoteAddress,
-				"requestURI":    requestURI,
-				"url":           url,
 			},
 		})
+		return nil
 	}
 
-	g.GET("/", get)
+	g.Get("/", get)
 }
