@@ -8,8 +8,8 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo"
 	"github.com/rs/zerolog"
 )
 
@@ -21,7 +21,8 @@ type Config struct {
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *sql.DB
-	Repository       *repo.Repository
+	BookRepository   types.BookRepository
+	MovieRepository  types.MovieRepository
 }
 
 // Application metadata
@@ -38,7 +39,8 @@ type Resolver struct {
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *sql.DB
-	repository       *repo.Repository
+	bookRepository   types.BookRepository
+	movieRepository  types.MovieRepository
 }
 
 // NewResolver returns a new Resolver instance
@@ -54,7 +56,8 @@ func NewResolver(c *Config) *Resolver {
 		log:              c.Log,
 		metadata:         c.Metadata,
 		postgreSQLClient: c.PostgreSQLClient,
-		repository:       c.Repository,
+		bookRepository:   c.BookRepository,
+		movieRepository:  c.MovieRepository,
 	}
 
 	r.initialize()
@@ -67,7 +70,7 @@ func (r *Resolver) initialize() {
 	r.Metadata()
 	r.Log()
 	r.PostgreSQLClient()
-	r.Repository()
+	r.BookRepository()
 	r.Application()
 	r.HTTPServer()
 }
