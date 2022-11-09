@@ -1,7 +1,7 @@
 package types
 
 // JSON API Response ------------------------------------------------------------------------------
-// Resource defines the interface for all REST resources
+// JSONResponse defines the interface for a JSON REST response
 type JSONResponse interface {
 	Discoverable
 }

@@ -12,7 +12,7 @@ type MovieProperties struct {
 	Title    string `json:"title"`
 	Year     uint16 `json:"year"`
 	Director string `json:"director"`
-	Deleted  bool   `json:"deleted"`
+	Deleted  bool   `json:"-"`
 	Status   int    `json:"status"`
 }
 
@@ -29,11 +29,17 @@ func (m *Movie) Discover() *Movie {
 // SerializeResponse
 func (m *Movie) SerializeResponse(r *MovieRepoResult, single bool) (JSONResponse, error) {
 	if single {
+		p := r.Data[0].Properties.(Movie)
 		res := &JSONResponseDetail{
 			Data: &Resource{
-				Type:       "movie",
-				ID:         "1234",
-				Properties: r.Data[0].Properties,
+				Type: DomainType.Movie,
+				ID:   p.ID,
+				Properties: &MovieProperties{
+					Title:    p.Title,
+					Year:     p.Year,
+					Director: p.Director,
+					Status:   p.Status,
+				},
 			},
 		}
 		return res, nil

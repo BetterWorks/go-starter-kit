@@ -11,7 +11,7 @@ type BookProperties struct {
 	Title   string `json:"title"`
 	Year    uint16 `json:"year"`
 	Author  string `json:"author"`
-	Deleted bool   `json:"deleted"`
+	Deleted bool   `json:"-"`
 	Status  int    `json:"status"`
 }
 
@@ -28,11 +28,17 @@ func (b *Book) Discover() *Book {
 // SerializeResponse
 func (b *Book) SerializeResponse(r *BookRepoResult, single bool) (JSONResponse, error) {
 	if single {
+		p := r.Data[0].Properties.(Book)
 		res := &JSONResponseDetail{
 			Data: &Resource{
-				Type:       "book",
-				ID:         "1234",
-				Properties: r.Data[0].Properties,
+				Type: DomainType.Book,
+				ID:   p.ID,
+				Properties: &BookProperties{
+					Title:  p.Title,
+					Year:   p.Year,
+					Author: p.Author,
+					Status: p.Status,
+				},
 			},
 		}
 		return res, nil
