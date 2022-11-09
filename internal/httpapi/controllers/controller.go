@@ -5,16 +5,19 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/types"
 )
 
+// Config
 type Config struct {
 	Application *application.Application
 	Logger      *types.Logger
 }
 
+// Controller
 type Controller struct {
 	application *application.Application
 	logger      *types.Logger
 }
 
+// NewController
 func NewController(c *Config) *Controller {
 	return &Controller{
 		application: c.Application,

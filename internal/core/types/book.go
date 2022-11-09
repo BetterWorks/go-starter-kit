@@ -6,6 +6,7 @@ type Book struct {
 	BookProperties
 }
 
+// BookProperties
 type BookProperties struct {
 	Title   string `json:"title"`
 	Year    uint16 `json:"year"`
@@ -14,14 +15,17 @@ type BookProperties struct {
 	Status  int    `json:"status"`
 }
 
+// Discover
 func (b *Book) Discover() *Book {
 	return b
 }
 
+// // SerializeModel
 // func (b *Book) SerializeModel(r *BookRepoResult) (*Book, error) {
 // 	return &Book{}, nil
 // }
 
+// SerializeResponse
 func (b *Book) SerializeResponse(r *BookRepoResult, single bool) (JSONResponse, error) {
 	if single {
 		res := &JSONResponseDetail{

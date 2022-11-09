@@ -6,7 +6,7 @@ import (
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
-// MovieRouter implements an example router group for a Movie domain resource
+// MovieRouter implements an example router group for a Movie resource
 func MovieRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/movies"
 	g := r.Group(prefix)

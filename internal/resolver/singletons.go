@@ -30,6 +30,16 @@ func (r *Resolver) Application() *application.Application {
 	return r.application
 }
 
+// BookRepository provides a singleton BookRepository (interface) implementation
+func (r *Resolver) BookRepository() types.BookRepository {
+	if r.bookRepository == nil {
+		repo := entities.NewBookEntity()
+		r.bookRepository = repo
+	}
+
+	return r.bookRepository
+}
+
 // Config provides a singleton config.Configuration instance
 func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
@@ -84,6 +94,16 @@ func (r *Resolver) Log() *zerolog.Logger {
 	return r.log
 }
 
+// MovieRepository provides a singleton MovieRepository (interface) implementation
+func (r *Resolver) MovieRepository() types.MovieRepository {
+	if r.movieRepository == nil {
+		repo := entities.NewMovieEntity()
+		r.movieRepository = repo
+	}
+
+	return r.movieRepository
+}
+
 // PostgresClient provides a singleton postgres sql.DB instance
 func (r *Resolver) PostgreSQLClient() *sql.DB {
 	if r.postgreSQLClient == nil {
@@ -100,24 +120,4 @@ func (r *Resolver) PostgreSQLClient() *sql.DB {
 	}
 
 	return r.postgreSQLClient
-}
-
-// BookRepository provides a singleton BookRepository (interface) implementation
-func (r *Resolver) BookRepository() types.BookRepository {
-	if r.bookRepository == nil {
-		repo := entities.NewBookEntity()
-		r.bookRepository = repo
-	}
-
-	return r.bookRepository
-}
-
-// MovieRepository provides a singleton MovieRepository (interface) implementation
-func (r *Resolver) MovieRepository() types.MovieRepository {
-	if r.movieRepository == nil {
-		repo := entities.NewMovieEntity()
-		r.movieRepository = repo
-	}
-
-	return r.movieRepository
 }

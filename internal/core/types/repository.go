@@ -1,23 +1,37 @@
 package types
 
+// RepoResultMetadata
 type RepoResultMetadata struct {
 	Paging ListPaging // `json:"paging,omitempty"`
 }
 
-type RepoResultData struct {
-	Data []RepoEntity // `json:"data"`
+// RepoResultEntity
+type RepoResultEntity struct {
+	Type       string
+	Meta       RepoResultEntityMetadata
+	Properties any // TODO
+	Related    []RepoResultRelatedResource
 }
 
-type RepoEntity struct {
-	Type string // `json:"type"`
-	// Meta       ResourceMetadata      `json:"meta"`
-	Properties any // `json:"properties"`
-	// Related    []RepoRelatedResource `json:"rel"`
+// RepoResultEntityMetadata
+type RepoResultEntityMetadata struct{}
+
+// RepoResultRelatedResource
+type RepoResultRelatedResource struct {
+	Type string
+	Data []any // TODO
 }
 
-type RepoRelatedResource struct {
-	Type string `json:"type"`
-	Data []any  `json:"data"` // TODO
+// BookRepoResult
+type BookRepoResult struct {
+	Metadata RepoResultMetadata
+	Data     []RepoResultEntity
+}
+
+// MovieRepoResult
+type MovieRepoResult struct {
+	Metadata RepoResultMetadata
+	Data     []RepoResultEntity
 }
 
 // {
@@ -45,12 +59,6 @@ type RepoRelatedResource struct {
 // 		}]
 // }
 
-// BookRepoResult
-type BookRepoResult struct {
-	Metadata RepoResultMetadata // `json:"meta"`
-	Data     []RepoEntity       // `json:"data"`
-}
-
 // BookRepository
 type BookRepository interface {
 	Create(*Book) (*BookRepoResult, error)
@@ -59,9 +67,6 @@ type BookRepository interface {
 	List(*ListMeta) ([]*BookRepoResult, error)
 	Update(*Book) (*BookRepoResult, error)
 }
-
-// MovieRepoResult
-type MovieRepoResult struct{}
 
 // MovieRepository
 type MovieRepository interface {

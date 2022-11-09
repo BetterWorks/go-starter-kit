@@ -12,20 +12,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// ResponseLoggerConfig
-type ResponseLoggerConfig struct {
-	Logger *types.Logger
-	Next   func(c *fiber.Ctx) bool
-}
-
-// setResponseLoggerConfig
-func setResponseLoggerConfig(c *ResponseLoggerConfig) *ResponseLoggerConfig {
-	if c.Logger == nil {
-		log.Panicf("request logger middleware missing logger configuration")
-	}
-	return c
-}
-
 // ResponseLogger
 func ResponseLogger(config *ResponseLoggerConfig) fiber.Handler {
 	conf := setResponseLoggerConfig(config)
@@ -61,6 +47,20 @@ func ResponseLogger(config *ResponseLoggerConfig) fiber.Handler {
 
 		return nil
 	}
+}
+
+// ResponseLoggerConfig
+type ResponseLoggerConfig struct {
+	Logger *types.Logger
+	Next   func(c *fiber.Ctx) bool
+}
+
+// setResponseLoggerConfig
+func setResponseLoggerConfig(c *ResponseLoggerConfig) *ResponseLoggerConfig {
+	if c.Logger == nil {
+		log.Panicf("request logger middleware missing logger configuration")
+	}
+	return c
 }
 
 // ResponseLogData defines the data captured for response logging

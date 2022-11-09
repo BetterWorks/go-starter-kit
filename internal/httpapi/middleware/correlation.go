@@ -53,7 +53,7 @@ type CorrelationConfig struct {
 	Next func(c *fiber.Ctx) bool
 }
 
-// traceConfigDefault sets default TraceConfig values
+// setCorrelationConfig sets default CorrelationConfig values and CorrelationContextKey
 func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
 	var conf = &CorrelationConfig{
 		ContextKey: "Trace",

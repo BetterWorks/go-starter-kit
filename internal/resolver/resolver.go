@@ -65,6 +65,7 @@ func NewResolver(c *Config) *Resolver {
 	return r
 }
 
+// initialize
 func (r *Resolver) initialize() {
 	r.Config()
 	r.Metadata()

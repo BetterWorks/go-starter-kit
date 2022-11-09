@@ -3,6 +3,13 @@ package types
 import "github.com/rs/zerolog"
 
 // Context ----------------------------------------------------------------------------------------
+// Logger encapsulates a logger with an associated log level and toggle
+type Logger struct {
+	Enabled bool
+	Level   string
+	Log     *zerolog.Logger
+}
+
 // Trace
 type Trace struct {
 	Headers   map[string]string
@@ -29,12 +36,4 @@ type ListPaging struct {
 
 // ListSorting
 type ListSorting struct {
-}
-
-// List Metadata ----------------------------------------------------------------------------------
-// Logger encapsulates a logger with an associated log level and toggle
-type Logger struct {
-	Enabled bool
-	Level   string
-	Log     *zerolog.Logger
 }

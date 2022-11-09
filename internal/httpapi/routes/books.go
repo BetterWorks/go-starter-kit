@@ -6,7 +6,7 @@ import (
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
-// BookRouter implements an example router group for a Book domain resource
+// BookRouter implements an example router group for a Book resource
 func BookRouter(app *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/books"
 	g := app.Group(prefix)

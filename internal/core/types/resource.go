@@ -12,6 +12,7 @@ type JSONResponseDetail struct {
 	Data *Resource    `json:"data"`
 }
 
+// Discover
 func (r *JSONResponseDetail) Discover() Discoverable {
 	return r
 }
@@ -22,6 +23,7 @@ type JSONResponseList struct {
 	Data *[]Resource  `json:"data"`
 }
 
+// Discover
 func (r *JSONResponseList) Discover() Discoverable {
 	return r
 }
@@ -39,5 +41,5 @@ type Resource struct {
 	Type       string            `json:"type"`
 	ID         string            `json:"id"`
 	Meta       *ResourceMetadata `json:"meta,omitempty"`
-	Properties any               `json:"properties"`
+	Properties any               `json:"properties"` // TODO
 }

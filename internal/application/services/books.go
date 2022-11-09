@@ -71,7 +71,7 @@ func (s *bookService) Detail(id string) (*types.JSONResponseDetail, error) {
 
 // List
 func (s *bookService) List(m *types.ListMeta) (*types.JSONResponseList, error) {
-	return nil, nil
+	return nil, nil // TODO
 }
 
 // Update

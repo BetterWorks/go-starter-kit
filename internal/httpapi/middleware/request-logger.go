@@ -14,30 +14,6 @@ import (
 // RequestLoggerContextKey
 var RequestLoggerContextKey string
 
-// RequestLoggerConfig
-type RequestLoggerConfig struct {
-	ContextKey string
-	Logger     *types.Logger
-	Next       func(c *fiber.Ctx) bool
-}
-
-// setRequestLoggerConfig
-func setRequestLoggerConfig(c *RequestLoggerConfig) *RequestLoggerConfig {
-	if c.Logger == nil {
-		log.Panicf("request logger middleware missing logger configuration")
-	}
-	conf := c
-
-	// override defaults
-	if c.ContextKey == "" {
-		conf.ContextKey = "RequestLogData"
-	}
-	// set exposed context key for use in other handlers
-	RequestLoggerContextKey = conf.ContextKey
-
-	return conf
-}
-
 // RequestLogger
 func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 	conf := setRequestLoggerConfig(config)
@@ -77,6 +53,30 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 
 		return ctx.Next()
 	}
+}
+
+// RequestLoggerConfig
+type RequestLoggerConfig struct {
+	ContextKey string
+	Logger     *types.Logger
+	Next       func(c *fiber.Ctx) bool
+}
+
+// setRequestLoggerConfig
+func setRequestLoggerConfig(c *RequestLoggerConfig) *RequestLoggerConfig {
+	if c.Logger == nil {
+		log.Panicf("request logger middleware missing logger configuration")
+	}
+	conf := c
+
+	// override defaults
+	if c.ContextKey == "" {
+		conf.ContextKey = "RequestLogData"
+	}
+	// set exposed context key for use in other handlers
+	RequestLoggerContextKey = conf.ContextKey
+
+	return conf
 }
 
 // RequestLogData
