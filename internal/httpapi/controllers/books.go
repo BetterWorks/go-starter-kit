@@ -9,44 +9,36 @@ import (
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
 )
 
-type Config struct {
-	Application types.Application
-	Logger      *types.Logger
-}
-
-type Controller struct {
-	application types.Application
-	logger      *types.Logger
-}
-
-func NewController(c *Config) *Controller {
-	return &Controller{
-		application: c.Application,
-		logger:      c.Logger,
-	}
-}
-
-// Create
-func (c *Controller) Create(data any, t string) fiber.Handler {
+// BookCreate
+func (c *Controller) BookCreate() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Create Controller called")
 
 		// TODO: validate body
-
-		if err := ctx.BodyParser(data); err != nil {
+		resource := &BookRequestBody{}
+		if err := ctx.BodyParser(resource); err != nil {
 			return err
 		}
-		// resource := c.application.Create(data)
+
+		model := types.Book(resource.Data.Properties)
+		fmt.Printf("Model in Create Controller: %+v\n", model)
+
+		result, err := c.application.Services.BookService.Create(&model)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Result in Create Controller: %+v\n", result)
+
 		ctx.Status(http.StatusCreated)
-		ctx.JSON(data)
+		ctx.JSON(result)
 		return nil
 	}
 }
 
-// Delete
-func (c *Controller) Delete(t string) fiber.Handler {
+// BookDelete
+func (c *Controller) BookDelete() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -61,8 +53,8 @@ func (c *Controller) Delete(t string) fiber.Handler {
 	}
 }
 
-// Detail
-func (c *Controller) Detail(t string) fiber.Handler {
+// BookDetail
+func (c *Controller) BookDetail() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -79,8 +71,8 @@ func (c *Controller) Detail(t string) fiber.Handler {
 	}
 }
 
-// List
-func (c *Controller) List(t string) fiber.Handler {
+// BookList
+func (c *Controller) BookList() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -97,8 +89,8 @@ func (c *Controller) List(t string) fiber.Handler {
 	}
 }
 
-// Update
-func (c *Controller) Update(data any, t string) fiber.Handler {
+// BookUpdate
+func (c *Controller) BookUpdate() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -109,6 +101,7 @@ func (c *Controller) Update(data any, t string) fiber.Handler {
 
 		// TODO: validate body
 
+		data := &BookRequestBody{}
 		if err := ctx.BodyParser(data); err != nil {
 			return err
 		}

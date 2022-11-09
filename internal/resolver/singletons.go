@@ -9,16 +9,21 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/application/services"
 	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo"
+	"github.com/jasonsites/gosk-api/internal/repo/entities"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // Application provides a singleton application.Application instance
 func (r *Resolver) Application() *application.Application {
 	if r.application == nil {
-		app := application.NewApplication(r.repository)
+		services := &application.Services{
+			BookService:  services.NewBookService(entities.NewBookEntity()),
+			MovieService: services.NewMovieService(entities.NewMovieEntity()),
+		}
+		app := application.NewApplication(services)
 		r.application = app
 	}
 
@@ -97,12 +102,22 @@ func (r *Resolver) PostgreSQLClient() *sql.DB {
 	return r.postgreSQLClient
 }
 
-// Application provides a singleton repo.Repository instance
-func (r *Resolver) Repository() *repo.Repository {
-	if r.repository == nil {
-		repo := repo.NewRepository()
-		r.repository = repo
+// BookRepository provides a singleton BookRepository (interface) implementation
+func (r *Resolver) BookRepository() types.BookRepository {
+	if r.bookRepository == nil {
+		repo := entities.NewBookEntity()
+		r.bookRepository = repo
 	}
 
-	return r.repository
+	return r.bookRepository
+}
+
+// MovieRepository provides a singleton MovieRepository (interface) implementation
+func (r *Resolver) MovieRepository() types.MovieRepository {
+	if r.movieRepository == nil {
+		repo := entities.NewMovieEntity()
+		r.movieRepository = repo
+	}
+
+	return r.movieRepository
 }
