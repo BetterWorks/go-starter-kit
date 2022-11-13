@@ -1,27 +1,27 @@
 package controllers
 
-import "github.com/jasonsites/gosk-api/internal/core/types"
-
-// MovieRequestBody
-type MovieRequestBody struct {
-	Data MovieResource `json:"data"`
-}
+import "github.com/jasonsites/gosk-api/internal/types"
 
 // MovieResource
-type MovieResource struct {
+type MovieRequestResource struct {
 	Type       string      `json:"type"`
 	ID         string      `json:"id"`
 	Properties types.Movie `json:"properties"`
 }
 
-// BookRequestBody
-type BookRequestBody struct {
-	Data BookResource `json:"data"`
+// MovieRequestBody
+type MovieRequestBody struct {
+	Data MovieRequestResource `json:"data"`
 }
 
 // BookResource
-type BookResource struct {
+type BookRequestResource struct {
 	Type       string     `json:"type"`
 	ID         string     `json:"id"`
 	Properties types.Book `json:"properties"`
+}
+
+// BookRequestBody
+type BookRequestBody struct {
+	Data BookRequestResource `json:"data"`
 }

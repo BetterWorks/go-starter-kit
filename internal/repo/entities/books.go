@@ -3,7 +3,7 @@ package entities
 import (
 	"fmt"
 
-	"github.com/jasonsites/gosk-api/internal/core/types"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // bookEntity

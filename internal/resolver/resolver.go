@@ -8,8 +8,8 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 

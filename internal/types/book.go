@@ -30,7 +30,7 @@ func (b *Book) SerializeResponse(r *BookRepoResult, single bool) (JSONResponse, 
 	if single {
 		p := r.Data[0].Properties.(Book)
 		res := &JSONResponseDetail{
-			Data: &Resource{
+			Data: &ResponseResource{
 				Type: DomainType.Book,
 				ID:   p.ID,
 				Properties: &BookProperties{
@@ -51,8 +51,19 @@ func (b *Book) SerializeResponse(r *BookRepoResult, single bool) (JSONResponse, 
 					Total:  r.Metadata.Paging.Total,
 				},
 			},
-			Data: &[]Resource{},
+			Data: &[]ResponseResource{},
 		}
 		return res, nil
 	}
+}
+
+func (b *Book) Set(data Settable) Settable {
+	book := data.(*Book)
+	b.ID = book.ID
+	b.Title = book.Title
+	b.Year = book.Year
+	b.Author = book.Author
+	b.Deleted = book.Deleted
+	b.Status = book.Status
+	return b
 }

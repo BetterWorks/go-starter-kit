@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/core/types"
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // BookCreate

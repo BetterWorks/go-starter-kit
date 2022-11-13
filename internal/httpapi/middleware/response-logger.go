@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/core/types"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 

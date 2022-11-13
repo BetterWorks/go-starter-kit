@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/core/types"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // Config

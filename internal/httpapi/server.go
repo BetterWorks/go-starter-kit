@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/core/types"
 	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 

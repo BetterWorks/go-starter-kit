@@ -31,7 +31,7 @@ func (m *Movie) SerializeResponse(r *MovieRepoResult, single bool) (JSONResponse
 	if single {
 		p := r.Data[0].Properties.(Movie)
 		res := &JSONResponseDetail{
-			Data: &Resource{
+			Data: &ResponseResource{
 				Type: DomainType.Movie,
 				ID:   p.ID,
 				Properties: &MovieProperties{
@@ -52,7 +52,7 @@ func (m *Movie) SerializeResponse(r *MovieRepoResult, single bool) (JSONResponse
 					Total:  r.Metadata.Paging.Total,
 				},
 			},
-			Data: &[]Resource{},
+			Data: &[]ResponseResource{},
 		}
 		return res, nil
 	}

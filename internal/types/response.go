@@ -8,8 +8,8 @@ type JSONResponse interface {
 
 // JSONResponseDetail
 type JSONResponseDetail struct {
-	Meta *APIMetadata `json:"meta,omitempty"`
-	Data *Resource    `json:"data"`
+	Meta *APIMetadata      `json:"meta,omitempty"`
+	Data *ResponseResource `json:"data"`
 }
 
 // Discover
@@ -19,8 +19,8 @@ func (r *JSONResponseDetail) Discover() Discoverable {
 
 // JSONResponseList
 type JSONResponseList struct {
-	Meta *APIMetadata `json:"meta"`
-	Data *[]Resource  `json:"data"`
+	Meta *APIMetadata        `json:"meta"`
+	Data *[]ResponseResource `json:"data"`
 }
 
 // Discover
@@ -37,7 +37,7 @@ type APIMetadata struct {
 type ResourceMetadata struct{}
 
 // Resource
-type Resource struct {
+type ResponseResource struct {
 	Type       string            `json:"type"`
 	ID         string            `json:"id"`
 	Meta       *ResourceMetadata `json:"meta,omitempty"`
