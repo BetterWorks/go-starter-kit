@@ -1,8 +1,8 @@
 version: '3.9'
 
 networks:
-  local-app-dev:
-    name: local-app-dev
+  local-dev:
+    name: local-dev
     driver: bridge
 
 services:
@@ -35,7 +35,7 @@ services:
       SERVER_HOST: ""
       SVC_EXAMPLE_HOST: http://host.docker.internal:8000
     networks:
-      - local-app-dev
+      - local-dev
     ports:
       - 9202:9202
     volumes:
@@ -53,7 +53,7 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_MULTIPLE_DATABASES: svcdb,testdb
     networks:
-      - local-app-dev
+      - local-dev
     ports:
       - 25432:5432
     volumes:
@@ -67,7 +67,7 @@ services:
       restart_policy:
         condition: on-failure
     networks:
-      - local-app-dev
+      - local-dev
     ports:
       - 26379:6379
     volumes:

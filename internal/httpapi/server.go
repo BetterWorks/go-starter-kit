@@ -36,7 +36,7 @@ func NewServer(c *Config) (*Server, error) {
 		return nil, err
 	}
 
-	app := fiber.New(fiber.Config{AppName: ""})
+	app := fiber.New(fiber.Config{AppName: "domain"})
 
 	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
 	logger := &domain.Logger{
@@ -62,7 +62,7 @@ func NewServer(c *Config) (*Server, error) {
 	return s, nil
 }
 
-// Serve
+// Serve starts the HTTP server on the configured address
 func (s *Server) Serve() {
 	addr := s.baseURL + ":" + strconv.FormatUint(uint64(s.port), 10)
 	s.App.Listen(addr)

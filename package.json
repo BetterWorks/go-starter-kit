@@ -2,9 +2,6 @@
   "name": "gosk-api",
   "version": "0.0.1",
   "description": "Go Starter Kit for HTTP API Applications",
-  "engines": {
-    "node": ">=18.x"
-  },
   "keywords": [
     "api",
     "go",

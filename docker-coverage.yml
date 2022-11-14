@@ -1,5 +1,10 @@
 version: '3.9'
 
+networks:
+  local-test:
+    name: local-test
+    driver: bridge
+
 services:
   api:
     build:
@@ -28,6 +33,8 @@ services:
       REDIS_PASSWORD: redis
       REDIS_PORT: 6379
       SVC_EXAMPLE_HOST: http://host.docker.internal:8000
+    networks:
+      - local-test
     ports:
       - 9204:9204
     volumes:
@@ -44,6 +51,8 @@ services:
       POSTGRES_USER: postgres
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_MULTIPLE_DATABASES: svcdb,testdb
+    networks:
+      - local-test
     ports:
       - 45432:5432
     volumes:
@@ -56,6 +65,8 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+    networks:
+      - local-test
     ports:
       - 46379:6379
     volumes:
