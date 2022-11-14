@@ -1,15 +1,21 @@
-package types
+package domain
+
+// RepoResult
+type RepoResult struct {
+	Metadata RepoResultMetadata
+	Data     []RepoResultEntity
+}
 
 // RepoResultMetadata
 type RepoResultMetadata struct {
-	Paging ListPaging // `json:"paging,omitempty"`
+	Paging ListPaging
 }
 
 // RepoResultEntity
 type RepoResultEntity struct {
 	Type       string
 	Meta       RepoResultEntityMetadata
-	Properties any // TODO
+	Attributes any // TODO ?
 	Related    []RepoResultRelatedResource
 }
 
@@ -22,18 +28,7 @@ type RepoResultRelatedResource struct {
 	Data []any // TODO
 }
 
-// BookRepoResult
-type BookRepoResult struct {
-	Metadata RepoResultMetadata
-	Data     []RepoResultEntity
-}
-
-// MovieRepoResult
-type MovieRepoResult struct {
-	Metadata RepoResultMetadata
-	Data     []RepoResultEntity
-}
-
+// temp documentation
 // {
 // 		meta: {
 // 				paging: {
@@ -59,20 +54,20 @@ type MovieRepoResult struct {
 // 		}]
 // }
 
-// BookRepository
-type BookRepository interface {
-	Create(*Book) (*BookRepoResult, error)
+// EpisodeRepository
+type EpisodeRepository interface {
+	Create(*Episode) (*RepoResult, error)
 	Delete(id string) error
-	Detail(id string) (*BookRepoResult, error)
-	List(*ListMeta) ([]*BookRepoResult, error)
-	Update(*Book) (*BookRepoResult, error)
+	Detail(id string) (*RepoResult, error)
+	List(*ListMeta) ([]*RepoResult, error)
+	Update(*Episode) (*RepoResult, error)
 }
 
-// MovieRepository
-type MovieRepository interface {
-	Create(*Movie) (*MovieRepoResult, error)
+// SeasonRepository
+type SeasonRepository interface {
+	Create(*Season) (*RepoResult, error)
 	Delete(id string) error
-	Detail(id string) (*MovieRepoResult, error)
-	List(*ListMeta) ([]*MovieRepoResult, error)
-	Update(*Movie) (*MovieRepoResult, error)
+	Detail(id string) (*RepoResult, error)
+	List(*ListMeta) ([]*RepoResult, error)
+	Update(*Season) (*RepoResult, error)
 }

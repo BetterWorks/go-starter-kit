@@ -1,1 +1,2 @@
-DROP TABLE IF EXISTS "entity";
+DROP TABLE IF EXISTS "episode";
+DROP TABLE IF EXISTS "season";

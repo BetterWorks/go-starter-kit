@@ -8,11 +8,13 @@ import (
 )
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Fatalf("app recovery failed: %v", err)
-		}
-	}()
+	defer recovery()
 	r := resolver.NewResolver(nil)
 	r.HTTPServer().Serve()
+}
+
+func recovery() {
+	if err := recover(); err != nil {
+		log.Fatalf("app recovery failed: %v", err)
+	}
 }

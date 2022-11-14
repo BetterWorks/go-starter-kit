@@ -6,8 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/core/types"
-	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
+	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
@@ -15,7 +14,7 @@ import (
 type Config struct {
 	Application *application.Application `validate:"required"`
 	BaseURL     string                   `validate:"required"`
-	Logger      *types.Logger            `validate:"required"`
+	Logger      *domain.Logger           `validate:"required"`
 	Mode        string                   `validate:"required"`
 	Namespace   string                   `validate:"required"`
 	Port        uint                     `validate:"required"`
@@ -23,12 +22,12 @@ type Config struct {
 
 // Server defines a server for handling HTTP API requests
 type Server struct {
-	App        *fiber.App
-	Logger     *types.Logger
-	baseURL    string
-	controller *controllers.Controller
-	namespace  string
-	port       uint
+	App         *fiber.App
+	Logger      *domain.Logger
+	baseURL     string
+	controllers *controllerRegistry
+	namespace   string
+	port        uint
 }
 
 // NewServer returns a new Server instance
@@ -40,24 +39,21 @@ func NewServer(c *Config) (*Server, error) {
 	app := fiber.New(fiber.Config{AppName: ""})
 
 	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
-	logger := &types.Logger{
+	logger := &domain.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
 	}
 
-	ctrl := controllers.NewController(&controllers.Config{
-		Application: c.Application,
-		Logger:      logger,
-	})
+	controllers := registerControllers(logger, c.Application.Services)
 
 	s := &Server{
 		Logger: logger,
 		App:    app,
 		// baseURL:    c.BaseURL,
-		controller: ctrl,
-		namespace:  c.Namespace,
-		port:       c.Port,
+		controllers: controllers,
+		namespace:   c.Namespace,
+		port:        c.Port,
 	}
 
 	s.configureMiddleware()
