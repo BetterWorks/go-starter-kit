@@ -1,5 +1,10 @@
 version: '3.9'
 
+networks:
+  local-app-dev:
+    name: local-app-dev
+    driver: bridge
+
 services:
   api:
     build:
@@ -29,6 +34,8 @@ services:
       REDIS_PORT: 6379
       SERVER_HOST: ""
       SVC_EXAMPLE_HOST: http://host.docker.internal:8000
+    networks:
+      - local-app-dev
     ports:
       - 9202:9202
     volumes:
@@ -45,6 +52,8 @@ services:
       POSTGRES_USER: postgres
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_MULTIPLE_DATABASES: svcdb,testdb
+    networks:
+      - local-app-dev
     ports:
       - 25432:5432
     volumes:
@@ -57,6 +66,8 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+    networks:
+      - local-app-dev
     ports:
       - 26379:6379
     volumes:
