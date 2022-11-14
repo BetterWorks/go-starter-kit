@@ -1,8 +1,6 @@
 package application
 
-import (
-	"github.com/jasonsites/gosk-api/internal/core/types"
-)
+import "github.com/jasonsites/gosk-api/internal/application/domain"
 
 // Application
 type Application struct {
@@ -15,24 +13,15 @@ func NewApplication(s *Services) *Application {
 
 // Services
 type Services struct {
-	BookService  BookService
-	MovieService MovieService
+	EpisodeService Service
+	SeasonService  Service
 }
 
-// BookService
-type BookService interface {
-	Create(*types.Book) (*types.JSONResponseDetail, error)
-	Delete(id string) error
-	Detail(id string) (*types.JSONResponseDetail, error)
-	List(*types.ListMeta) (*types.JSONResponseList, error)
-	Update(data *types.Book) (*types.JSONResponseDetail, error)
-}
-
-// MovieService
-type MovieService interface {
-	Create(*types.Movie) (*types.JSONResponseDetail, error)
-	Delete(id string) error
-	Detail(id string) (*types.JSONResponseDetail, error)
-	List(*types.ListMeta) (*types.JSONResponseList, error)
-	Update(data *types.Movie) (*types.JSONResponseDetail, error)
+// Service
+type Service interface {
+	Create(any) (*domain.JSONResponseSolo, error)
+	Delete(string) error
+	Detail(string) (*domain.JSONResponseSolo, error)
+	List(*domain.ListMeta) (*domain.JSONResponseMult, error)
+	Update(any) (*domain.JSONResponseSolo, error)
 }

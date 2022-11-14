@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"os"
 
@@ -9,19 +10,19 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/application/services"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo/entities"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/repo"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // Application provides a singleton application.Application instance
-func (r *Resolver) Application() *application.Application {
+func (r *resolver) Application() *application.Application {
 	if r.application == nil {
 		services := &application.Services{
-			BookService:  services.NewBookService(entities.NewBookEntity()),
-			MovieService: services.NewMovieService(entities.NewMovieEntity()),
+			EpisodeService: services.NewEpisodeService(r.repoEpisode),
+			SeasonService:  services.NewSeasonService(r.repoSeason),
 		}
 		app := application.NewApplication(services)
 		r.application = app
@@ -30,18 +31,8 @@ func (r *Resolver) Application() *application.Application {
 	return r.application
 }
 
-// BookRepository provides a singleton BookRepository (interface) implementation
-func (r *Resolver) BookRepository() types.BookRepository {
-	if r.bookRepository == nil {
-		repo := entities.NewBookEntity()
-		r.bookRepository = repo
-	}
-
-	return r.bookRepository
-}
-
 // Config provides a singleton config.Configuration instance
-func (r *Resolver) Config() *config.Configuration {
+func (r *resolver) Config() *config.Configuration {
 	if r.config == nil {
 		c, err := config.LoadConfiguration()
 		if err != nil {
@@ -55,12 +46,12 @@ func (r *Resolver) Config() *config.Configuration {
 }
 
 // HTTPServer provides a singleton httpapi.Server instance
-func (r *Resolver) HTTPServer() *httpapi.Server {
+func (r *resolver) HTTPServer() *httpapi.Server {
 	if r.httpServer == nil {
 		server, err := httpapi.NewServer(&httpapi.Config{
 			Application: r.application,
 			BaseURL:     r.config.HttpAPI.BaseURL,
-			Logger: &types.Logger{
+			Logger: &domain.Logger{
 				Enabled: r.config.Logger.Http.Enabled,
 				Level:   r.config.Logger.Http.Level,
 				Log:     r.log,
@@ -80,7 +71,7 @@ func (r *Resolver) HTTPServer() *httpapi.Server {
 }
 
 // Log provides a singleton zerolog.Logger instance
-func (r *Resolver) Log() *zerolog.Logger {
+func (r *resolver) Log() *zerolog.Logger {
 	if r.log == nil {
 		logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().
 			Int("pid", os.Getpid()).
@@ -94,18 +85,28 @@ func (r *Resolver) Log() *zerolog.Logger {
 	return r.log
 }
 
-// MovieRepository provides a singleton MovieRepository (interface) implementation
-func (r *Resolver) MovieRepository() types.MovieRepository {
-	if r.movieRepository == nil {
-		repo := entities.NewMovieEntity()
-		r.movieRepository = repo
+// Metadata provides a singleton application Metadata instance
+func (r *resolver) Metadata() *Metadata {
+	if r.metadata == nil {
+		var metadata *Metadata
+
+		jsondata, err := os.ReadFile(r.config.Metadata.Path)
+		if err != nil {
+			log.Printf("error reading package.json file, %v:", err)
+		}
+
+		if err := json.Unmarshal(jsondata, &metadata); err != nil {
+			log.Printf("error unmarshalling package.json, %v:", err)
+		}
+
+		r.metadata = metadata
 	}
 
-	return r.movieRepository
+	return r.metadata
 }
 
 // PostgresClient provides a singleton postgres sql.DB instance
-func (r *Resolver) PostgreSQLClient() *sql.DB {
+func (r *resolver) PostgreSQLClient() *sql.DB {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			log.Panicf("invalid postgres config: %v", err)
@@ -120,4 +121,48 @@ func (r *Resolver) PostgreSQLClient() *sql.DB {
 	}
 
 	return r.postgreSQLClient
+}
+
+// RepositoryEpisode provides a singleton EpisodeRepository (interface) implementation
+func (r *resolver) RepositoryEpisode() domain.EpisodeRepository {
+	if r.repoEpisode == nil {
+
+		repo, err := repo.NewEpisodeRepository(&repo.EpisodeRepoConfig{
+			Logger: &domain.Logger{
+				Enabled: r.config.Logger.Repo.Enabled,
+				Level:   r.config.Logger.Repo.Level,
+				Log:     r.log,
+			},
+			DBClient: r.postgreSQLClient,
+		})
+		if err != nil {
+			log.Panicf("error resolving episode repository: %v", err)
+		}
+
+		r.repoEpisode = repo
+	}
+
+	return r.repoEpisode
+}
+
+// RepositorySeason provides a singleton SeasonRepository (interface) implementation
+func (r *resolver) RepositorySeason() domain.SeasonRepository {
+	if r.repoSeason == nil {
+
+		repo, err := repo.NewSeasonRepository(&repo.SeasonRepoConfig{
+			Logger: &domain.Logger{
+				Enabled: r.config.Logger.Repo.Enabled,
+				Level:   r.config.Logger.Repo.Level,
+				Log:     r.log,
+			},
+			PostgreSQLClient: r.postgreSQLClient,
+		})
+		if err != nil {
+			log.Panicf("error resolving season repository: %v", err)
+		}
+
+		r.repoSeason = repo
+	}
+
+	return r.repoSeason
 }
