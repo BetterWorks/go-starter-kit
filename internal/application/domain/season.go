@@ -1,12 +1,16 @@
 package domain
 
+import (
+	"github.com/google/uuid"
+)
+
 // Season defines an example domain resource
 type Season struct {
-	ID          string `json:"id,omitempty"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Status      int    `json:"status"`
-	Deleted     bool   `json:"-"`
+	ID          uuid.UUID `json:"id,omitempty"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Status      int       `json:"status"`
+	Deleted     bool      `json:"-"`
 }
 
 // Discover
@@ -28,7 +32,7 @@ func (s *Season) SerializeModel(r *RepoResult, solo bool) (*Season, error) {
 func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	if solo {
 		model := r.Data[0].Attributes.(Season)
-		res := &JSONResponseSolo{
+		res := &JSONResponseSingle{
 			Data: &ResponseResource{
 				Type: DomainType.Season,
 				ID:   model.ID,
@@ -41,7 +45,7 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 		}
 		return res, nil
 	} else {
-		res := &JSONResponseMult{
+		res := &JSONResponseMulti{
 			Meta: &APIMetadata{
 				Paging: &ListPaging{
 					Limit:  r.Metadata.Paging.Limit,

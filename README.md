@@ -49,7 +49,7 @@ $ docker compose run --rm --service-ports api
 ## Building
 **Compile server binary**
 ```sh
-$ go build -mod vendor -o out/bin/domain ./cmd/server
+$ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 ```
 
 ## Contributing
@@ -60,4 +60,4 @@ $ go build -mod vendor -o out/bin/domain ./cmd/server
 1. Create new pull request
 
 ## License
-Copyright (c) 2022 Jason Sites
+Copyright (c) 2022-23 Jason Sites

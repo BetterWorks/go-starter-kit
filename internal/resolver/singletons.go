@@ -124,7 +124,7 @@ func (r *resolver) PostgreSQLClient() *sql.DB {
 }
 
 // RepositoryEpisode provides a singleton EpisodeRepository (interface) implementation
-func (r *resolver) RepositoryEpisode() domain.EpisodeRepository {
+func (r *resolver) RepositoryEpisode() domain.Repository {
 	if r.repoEpisode == nil {
 
 		repo, err := repo.NewEpisodeRepository(&repo.EpisodeRepoConfig{
@@ -146,7 +146,7 @@ func (r *resolver) RepositoryEpisode() domain.EpisodeRepository {
 }
 
 // RepositorySeason provides a singleton SeasonRepository (interface) implementation
-func (r *resolver) RepositorySeason() domain.SeasonRepository {
+func (r *resolver) RepositorySeason() domain.Repository {
 	if r.repoSeason == nil {
 
 		repo, err := repo.NewSeasonRepository(&repo.SeasonRepoConfig{

@@ -1,15 +1,19 @@
 package domain
 
+import (
+	"github.com/google/uuid"
+)
+
 // Episode defines an example domain resource
 type Episode struct {
-	ID          string `json:"id,omitempty"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Year        uint16 `json:"year"`
-	Director    string `json:"director"`
-	SeasonID    string `json:"season_id"`
-	Status      int    `json:"status"`
-	Deleted     bool   `json:"-"`
+	ID          uuid.UUID `json:"id,omitempty"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Year        uint16    `json:"year"`
+	Director    string    `json:"director"`
+	SeasonID    uuid.UUID `json:"season_id"`
+	Status      int       `json:"status"`
+	Deleted     bool      `json:"-"`
 }
 
 // Discover
@@ -31,7 +35,7 @@ func (m *Episode) SerializeModel(r *RepoResult, solo bool) (*Episode, error) {
 func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	if solo {
 		model := r.Data[0].Attributes.(Episode)
-		res := &JSONResponseSolo{
+		res := &JSONResponseSingle{
 			Data: &ResponseResource{
 				Type: DomainType.Episode,
 				ID:   model.ID,
@@ -49,7 +53,7 @@ func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, err
 	}
 
 	// TODO: List case
-	res := &JSONResponseMult{
+	res := &JSONResponseMulti{
 		Meta: &APIMetadata{
 			Paging: &ListPaging{
 				Limit:  r.Metadata.Paging.Limit,

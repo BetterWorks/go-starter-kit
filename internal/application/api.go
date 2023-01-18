@@ -1,6 +1,9 @@
 package application
 
-import "github.com/jasonsites/gosk-api/internal/application/domain"
+import (
+	"github.com/google/uuid"
+	"github.com/jasonsites/gosk-api/internal/application/domain"
+)
 
 // Application
 type Application struct {
@@ -19,9 +22,9 @@ type Services struct {
 
 // Service
 type Service interface {
-	Create(any) (*domain.JSONResponseSolo, error)
-	Delete(string) error
-	Detail(string) (*domain.JSONResponseSolo, error)
-	List(*domain.ListMeta) (*domain.JSONResponseMult, error)
-	Update(any) (*domain.JSONResponseSolo, error)
+	Create(any) (*domain.JSONResponseSingle, error)
+	Delete(uuid.UUID) error
+	Detail(uuid.UUID) (*domain.JSONResponseSingle, error)
+	List(*domain.ListMeta) (*domain.JSONResponseMulti, error)
+	Update(any) (*domain.JSONResponseSingle, error)
 }

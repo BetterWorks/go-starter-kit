@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
@@ -14,7 +15,7 @@ type episodeEntity struct {
 	Description string
 	Director    string
 	Enabled     bool
-	ID          string
+	ID          uuid.UUID
 	SeasonID    string
 	Status      int
 	Title       string
@@ -55,12 +56,13 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 }
 
 // Create
-func (r *episodeRepository) Create(data *domain.Episode) (*domain.RepoResult, error) {
+func (r *episodeRepository) Create(data any) (*domain.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
-	data.ID = "9999" // mock ID return from DB
-	entity := domain.RepoResultEntity{Attributes: *data}
+	episode := data.(*domain.Episode)
+	episode.ID = uuid.New() // mock ID return from DB
+	entity := domain.RepoResultEntity{Attributes: *episode}
 
 	result := &domain.RepoResult{
 		Data: []domain.RepoResultEntity{entity},
@@ -71,7 +73,7 @@ func (r *episodeRepository) Create(data *domain.Episode) (*domain.RepoResult, er
 }
 
 // Delete
-func (r *episodeRepository) Delete(id string) error {
+func (r *episodeRepository) Delete(id uuid.UUID) error {
 	log := r.logger.Log.With().Str("tags", "repo").Logger()
 	log.Info().Msg("episodeRepository Delete called")
 
@@ -80,7 +82,7 @@ func (r *episodeRepository) Delete(id string) error {
 }
 
 // Detail
-func (r *episodeRepository) Detail(id string) (*domain.RepoResult, error) {
+func (r *episodeRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
@@ -125,8 +127,10 @@ func (r *episodeRepository) List(m *domain.ListMeta) ([]*domain.RepoResult, erro
 }
 
 // Update
-func (r *episodeRepository) Update(data *domain.Episode) (*domain.RepoResult, error) {
-	entity := domain.RepoResultEntity{Attributes: *data}
+func (r *episodeRepository) Update(data any) (*domain.RepoResult, error) {
+	episode := data.(*domain.Episode)
+
+	entity := domain.RepoResultEntity{Attributes: *episode}
 
 	result := &domain.RepoResult{
 		Data: []domain.RepoResultEntity{entity},
