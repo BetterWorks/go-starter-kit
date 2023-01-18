@@ -18,8 +18,8 @@ type Config struct {
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *sql.DB
-	RepoEpisode      domain.EpisodeRepository
-	RepoSeason       domain.SeasonRepository
+	RepoEpisode      domain.Repository
+	RepoSeason       domain.Repository
 }
 
 // Application metadata
@@ -36,8 +36,8 @@ type resolver struct {
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *sql.DB
-	repoEpisode      domain.EpisodeRepository
-	repoSeason       domain.SeasonRepository
+	repoEpisode      domain.Repository
+	repoSeason       domain.Repository
 }
 
 // NewResolver returns a new Resolver instance

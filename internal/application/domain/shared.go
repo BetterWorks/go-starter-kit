@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/rs/zerolog"
+)
 
 // Context ----------------------------------------------------------------------------------------
 // Logger encapsulates a logger with an associated log level and toggle
