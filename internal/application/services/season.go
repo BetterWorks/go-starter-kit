@@ -3,15 +3,16 @@ package services
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/application/domain"
 )
 
 type seasonService struct {
-	Repo   domain.SeasonRepository
+	Repo   domain.Repository
 	logger *domain.Logger
 }
 
-func NewSeasonService(r domain.SeasonRepository) *seasonService {
+func NewSeasonService(r domain.Repository) *seasonService {
 	return &seasonService{
 		Repo:   r,
 		logger: nil,
@@ -19,7 +20,7 @@ func NewSeasonService(r domain.SeasonRepository) *seasonService {
 }
 
 // Create
-func (s *seasonService) Create(data any) (*domain.JSONResponseSolo, error) {
+func (s *seasonService) Create(data any) (*domain.JSONResponseSingle, error) {
 	result, err := s.Repo.Create(data.(*domain.Season))
 	if err != nil {
 		fmt.Printf("Error in seasonService.Create on s.Repo.Create %+v\n", err)
@@ -33,14 +34,14 @@ func (s *seasonService) Create(data any) (*domain.JSONResponseSolo, error) {
 		fmt.Printf("Error in seasonService.Create on model.SerializeResponse %+v\n", err)
 		return nil, err
 	}
-	r := res.(*domain.JSONResponseSolo)
+	r := res.(*domain.JSONResponseSingle)
 	fmt.Printf("Result in seasonService.Create on model.SerializeResponse (casted) %+v\n", r)
 
 	return r, nil
 }
 
 // Delete
-func (s *seasonService) Delete(id string) error {
+func (s *seasonService) Delete(id uuid.UUID) error {
 	if err := s.Repo.Delete(id); err != nil {
 		fmt.Printf("Error in seasonService.Delete: %+v\n", err)
 		return err
@@ -50,7 +51,7 @@ func (s *seasonService) Delete(id string) error {
 }
 
 // Detail
-func (s *seasonService) Detail(id string) (*domain.JSONResponseSolo, error) {
+func (s *seasonService) Detail(id uuid.UUID) (*domain.JSONResponseSingle, error) {
 	result, err := s.Repo.Detail(id)
 	if err != nil {
 		fmt.Printf("Error in seasonService.Detail: %+v\n", err)
@@ -65,18 +66,18 @@ func (s *seasonService) Detail(id string) (*domain.JSONResponseSolo, error) {
 		fmt.Printf("Error in seasonService.Detail: %+v\n", err)
 		return nil, err
 	}
-	r := res.(*domain.JSONResponseSolo)
+	r := res.(*domain.JSONResponseSingle)
 
 	return r, nil
 }
 
 // List
-func (s *seasonService) List(m *domain.ListMeta) (*domain.JSONResponseMult, error) {
+func (s *seasonService) List(m *domain.ListMeta) (*domain.JSONResponseMulti, error) {
 	return nil, nil // TODO
 }
 
 // Update
-func (s *seasonService) Update(data any) (*domain.JSONResponseSolo, error) {
+func (s *seasonService) Update(data any) (*domain.JSONResponseSingle, error) {
 	result, err := s.Repo.Update(data.(*domain.Season))
 	if err != nil {
 		fmt.Printf("Error in seasonService.Update %+v\n", err)
@@ -91,7 +92,7 @@ func (s *seasonService) Update(data any) (*domain.JSONResponseSolo, error) {
 		fmt.Printf("Error in seasonService.Update on model.SerializeResponse %+v\n", err)
 		return nil, err
 	}
-	r := res.(*domain.JSONResponseSolo)
+	r := res.(*domain.JSONResponseSingle)
 
 	return r, nil
 }

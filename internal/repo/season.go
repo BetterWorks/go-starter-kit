@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
@@ -52,12 +53,13 @@ func NewSeasonRepository(c *SeasonRepoConfig) (*seasonRepository, error) {
 }
 
 // Create
-func (r *seasonRepository) Create(data *domain.Season) (*domain.RepoResult, error) {
+func (r *seasonRepository) Create(data any) (*domain.RepoResult, error) {
 	log := r.logger.Log.With().Str("", "").Logger()
 	log.Info().Msg("seasonRepository Create called")
 
-	data.ID = "9999" // mock ID return from DB
-	entity := domain.RepoResultEntity{Attributes: *data}
+	season := data.(*domain.Season)
+	season.ID = uuid.New() // mock ID return from DB
+	entity := domain.RepoResultEntity{Attributes: *season}
 
 	result := &domain.RepoResult{
 		Data: []domain.RepoResultEntity{entity},
@@ -68,13 +70,13 @@ func (r *seasonRepository) Create(data *domain.Season) (*domain.RepoResult, erro
 }
 
 // Delete
-func (r *seasonRepository) Delete(id string) error {
+func (r *seasonRepository) Delete(id uuid.UUID) error {
 	fmt.Printf("ID in seasonRepository.Delete: %s\n", id)
 	return nil
 }
 
 // Detail
-func (r *seasonRepository) Detail(id string) (*domain.RepoResult, error) {
+func (r *seasonRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
 	fmt.Printf("ID in seasonRepository.Detail: %s\n", id)
 
 	data := &domain.Season{
@@ -96,8 +98,10 @@ func (r *seasonRepository) List(m *domain.ListMeta) ([]*domain.RepoResult, error
 }
 
 // Update
-func (r *seasonRepository) Update(data *domain.Season) (*domain.RepoResult, error) {
-	entity := domain.RepoResultEntity{Attributes: *data}
+func (r *seasonRepository) Update(data any) (*domain.RepoResult, error) {
+	season := data.(*domain.Season)
+
+	entity := domain.RepoResultEntity{Attributes: *season}
 
 	result := &domain.RepoResult{
 		Data: []domain.RepoResultEntity{entity},

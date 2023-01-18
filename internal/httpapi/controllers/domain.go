@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/application"
 	"github.com/jasonsites/gosk-api/internal/application/domain"
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
@@ -68,7 +69,12 @@ func (c *Controller) Delete() fiber.Handler {
 		id := ctx.Params("id")
 		fmt.Printf("ID: %s", id)
 
-		if err := c.service.Delete(id); err != nil {
+		uuid, err := uuid.Parse(id)
+		if err != nil {
+			return err
+		}
+
+		if err := c.service.Delete(uuid); err != nil {
 			return err
 		}
 		ctx.Status(http.StatusNoContent)
@@ -84,9 +90,14 @@ func (c *Controller) Detail() fiber.Handler {
 		log.Info().Msg("Detail Controller called")
 
 		id := ctx.Params("id")
-		fmt.Printf("ID: %s", id)
+		fmt.Printf("ID in Controller: %s\n", id)
 
-		result, err := c.service.Detail(id)
+		uuid, err := uuid.Parse(id)
+		if err != nil {
+			return err
+		}
+
+		result, err := c.service.Detail(uuid)
 		if err != nil {
 			return err
 		}
