@@ -32,17 +32,21 @@ func NewController(c *Config) *Controller {
 }
 
 // Create
-func (c *Controller) Create(resource *JSONRequestBody) fiber.Handler {
+func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		fmt.Printf("\n\nINSIDE CREATE HANDLER\n\n")
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*domain.Trace).RequestID
+		fmt.Printf("REQUEST ID: %+v\n", requestID)
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Create Controller called")
+
+		resource := f()
 
 		if err := ctx.BodyParser(resource); err != nil {
 			fmt.Printf("Error in BodyParser %+v\n", err)
 			return err
 		}
-		fmt.Printf("Resource in Create Controller: %+v\n", resource)
+		fmt.Printf("Resource in Create Controller: %+v\n", *resource)
 
 		model := resource.Data.Properties
 		fmt.Printf("Model in Create Controller: %+v\n", model)
@@ -130,7 +134,7 @@ func (c *Controller) List() fiber.Handler {
 }
 
 // Update
-func (c *Controller) Update(resource *JSONRequestBody) fiber.Handler {
+func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*domain.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -141,11 +145,13 @@ func (c *Controller) Update(resource *JSONRequestBody) fiber.Handler {
 
 		// TODO: validate body
 
+		resource := f()
+
 		if err := ctx.BodyParser(resource); err != nil {
 			fmt.Printf("Error in BodyParser %+v\n", err)
 			return err
 		}
-		fmt.Printf("Resource in Update Controller: %+v\n", resource)
+		fmt.Printf("Resource in Update Controller: %+v\n", *resource)
 
 		model := resource.Data.Properties // TODO: problem here with ID
 		fmt.Printf("Model in Update Controller: %+v\n", model)

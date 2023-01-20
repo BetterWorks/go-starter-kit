@@ -12,15 +12,15 @@ func SeasonRouter(app *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/seasons"
 	g := app.Group(prefix)
 
-	// HandlerFunc wrapper that injects Season for request body data binding
-	wrapper := func(f func(*ctrl.JSONRequestBody) fiber.Handler) fiber.Handler {
-		resource := &ctrl.JSONRequestBody{Data: &ctrl.RequestResource{Properties: &domain.Season{}}}
-		return f(resource)
+	// createResource provides a JSONRequestBody with data binding for the Season model
+	// for use with Create/Update Controller methods
+	createResource := func() *ctrl.JSONRequestBody {
+		return &ctrl.JSONRequestBody{Data: &ctrl.RequestResource{Properties: &domain.SeasonData{}}}
 	}
 
 	g.Get("/", c.List())
 	g.Get("/:id", c.Detail())
-	g.Post("/", wrapper(c.Create))
-	g.Put("/:id", wrapper(c.Update))
+	g.Post("/", c.Create(createResource))
+	g.Put("/:id", c.Update(createResource))
 	g.Delete("/:id", c.Delete())
 }
