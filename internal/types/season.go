@@ -1,16 +1,37 @@
-package domain
+package types
 
 import (
 	"github.com/google/uuid"
 )
 
-// Season defines an example domain resource
+// SeasonRequestData defines a Season domain model for data attributes request binding
+type SeasonRequestData struct {
+	Deleted     bool
+	Description string
+	Enabled     bool
+	Status      uint8
+	Title       string
+}
+
+// SeasonEntity defines a Season database entity
+type SeasonEntity struct {
+	Deleted     bool
+	Description string
+	Enabled     bool
+	ID          string
+	Status      int
+	Title       string
+}
+
+// Season defines a Season domain model for application logic and response serialization
 type Season struct {
-	ID          uuid.UUID `json:"id,omitempty"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Status      int       `json:"status"`
+	CreatedBy   uint32    `json:"created_by"`
 	Deleted     bool      `json:"-"`
+	Description string    `json:"description"`
+	Enabled     bool      `json:"enabled"`
+	ID          uuid.UUID `json:"id,omitempty"`
+	Status      uint8     `json:"status"`
+	Title       string    `json:"title"`
 }
 
 // Discover
@@ -37,8 +58,8 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 				Type: DomainType.Season,
 				ID:   model.ID,
 				Properties: &Season{
-					Title:       model.Title,
 					Description: model.Description,
+					Title:       model.Title,
 					Status:      model.Status,
 				},
 			},

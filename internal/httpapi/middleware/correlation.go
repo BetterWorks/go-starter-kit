@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // TODO https://opentracing.io/
@@ -28,7 +28,7 @@ func Correlation(config *CorrelationConfig) fiber.Handler {
 		}
 		ctx.Set(conf.Header, requestID)
 
-		trace := domain.Trace{
+		trace := types.Trace{
 			Headers:   headers,
 			RequestID: requestID,
 		}

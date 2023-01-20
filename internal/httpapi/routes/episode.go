@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/jasonsites/gosk-api/internal/application/domain"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // EpisodeRouter implements an example router group for an Episode resource
@@ -15,7 +15,11 @@ func EpisodeRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	// createResource provides a JSONRequestBody with data binding for the Episode model
 	// for use with Create/Update Controller methods
 	createResource := func() *ctrl.JSONRequestBody {
-		return &ctrl.JSONRequestBody{Data: &ctrl.RequestResource{Properties: &domain.EpisodeData{}}}
+		return &ctrl.JSONRequestBody{
+			Data: &ctrl.RequestResource{
+				Properties: &types.EpisodeRequestData{},
+			},
+		}
 	}
 
 	g.Get("/", c.List())

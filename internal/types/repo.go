@@ -1,4 +1,4 @@
-package domain
+package types
 
 import (
 	"github.com/google/uuid"
@@ -6,10 +6,35 @@ import (
 
 // Repository
 type Repository interface {
+	RepoCreator
+	RepoDeleter
+	RepoDetailRetriever
+	RepoListRetriever
+	RepoUpdater
+}
+
+// RepoCreator
+type RepoCreator interface {
 	Create(any) (*RepoResult, error)
+}
+
+// RepoDeleter
+type RepoDeleter interface {
 	Delete(id uuid.UUID) error
+}
+
+// RepoDetailRetriever
+type RepoDetailRetriever interface {
 	Detail(id uuid.UUID) (*RepoResult, error)
+}
+
+// RepoListRetriever
+type RepoListRetriever interface {
 	List(*ListMeta) ([]*RepoResult, error)
+}
+
+// RepoUpdater
+type RepoUpdater interface {
 	Update(any) (*RepoResult, error)
 }
 

@@ -5,29 +5,19 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// seasonEntity
-type seasonEntity struct {
-	Deleted     bool
-	Description string
-	Enabled     bool
-	ID          string
-	Status      int
-	Title       string
-}
-
 // SeasonRepoConfig defines the input to NewSeasonRepository
 type SeasonRepoConfig struct {
-	Logger           *domain.Logger `validate:"required"`
-	PostgreSQLClient *sql.DB        `validate:"required"`
+	Logger           *types.Logger `validate:"required"`
+	PostgreSQLClient *sql.DB       `validate:"required"`
 }
 
 // seasonRepository
 type seasonRepository struct {
-	logger           *domain.Logger
+	logger           *types.Logger
 	postgreSQLClient *sql.DB
 }
 
@@ -38,7 +28,7 @@ func NewSeasonRepository(c *SeasonRepoConfig) (*seasonRepository, error) {
 	}
 
 	log := c.Logger.Log.With().Str("tags", "repo,season").Logger()
-	logger := &domain.Logger{
+	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
@@ -53,16 +43,16 @@ func NewSeasonRepository(c *SeasonRepoConfig) (*seasonRepository, error) {
 }
 
 // Create
-func (r *seasonRepository) Create(data any) (*domain.RepoResult, error) {
+func (r *seasonRepository) Create(data any) (*types.RepoResult, error) {
 	log := r.logger.Log.With().Str("", "").Logger()
 	log.Info().Msg("seasonRepository Create called")
 
-	season := data.(*domain.Season)
+	season := data.(*types.Season)
 	season.ID = uuid.New() // mock ID return from DB
-	entity := domain.RepoResultEntity{Attributes: *season}
+	entity := types.RepoResultEntity{Attributes: *season}
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entity},
 	}
 	fmt.Printf("Result in seasonRepository.Create: %+v\n", result)
 
@@ -76,35 +66,35 @@ func (r *seasonRepository) Delete(id uuid.UUID) error {
 }
 
 // Detail
-func (r *seasonRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
+func (r *seasonRepository) Detail(id uuid.UUID) (*types.RepoResult, error) {
 	fmt.Printf("ID in seasonRepository.Detail: %s\n", id)
 
-	data := &domain.Season{
+	data := &types.Season{
 		ID: id,
 	}
-	entity := domain.RepoResultEntity{Attributes: *data}
+	entity := types.RepoResultEntity{Attributes: *data}
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entity},
 	}
 	fmt.Printf("Result in seasonRepository.Detail: %+v\n", result)
 	return result, nil
 }
 
 // List
-func (r *seasonRepository) List(m *domain.ListMeta) ([]*domain.RepoResult, error) {
-	data := make([]*domain.RepoResult, 2)
+func (r *seasonRepository) List(m *types.ListMeta) ([]*types.RepoResult, error) {
+	data := make([]*types.RepoResult, 2)
 	return data, nil
 }
 
 // Update
-func (r *seasonRepository) Update(data any) (*domain.RepoResult, error) {
-	season := data.(*domain.Season)
+func (r *seasonRepository) Update(data any) (*types.RepoResult, error) {
+	season := data.(*types.Season)
 
-	entity := domain.RepoResultEntity{Attributes: *season}
+	entity := types.RepoResultEntity{Attributes: *season}
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entity},
 	}
 	fmt.Printf("Result in seasonRepository.Update: %+v\n", result)
 

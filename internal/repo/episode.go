@@ -5,33 +5,20 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// EpisodeEntity
-type episodeEntity struct {
-	Deleted     bool
-	Description string
-	Director    string
-	Enabled     bool
-	ID          uuid.UUID
-	SeasonID    string
-	Status      int
-	Title       string
-	Year        uint16
-}
-
 // EpisodeRepoConfig defines the input to NewEpisodeRepository
 type EpisodeRepoConfig struct {
-	DBClient *sql.DB        `validate:"required"`
-	Logger   *domain.Logger `validate:"required"`
+	DBClient *sql.DB       `validate:"required"`
+	Logger   *types.Logger `validate:"required"`
 }
 
 // episodeRepository
 type episodeRepository struct {
 	db     *sql.DB
-	logger *domain.Logger
+	logger *types.Logger
 }
 
 // NewEpisodeRepository
@@ -41,7 +28,7 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 	}
 
 	log := c.Logger.Log.With().Str("tags", "repo,episode").Logger()
-	logger := &domain.Logger{
+	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
@@ -56,16 +43,50 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 }
 
 // Create
-func (r *episodeRepository) Create(data any) (*domain.RepoResult, error) {
+func (r *episodeRepository) Create(data any) (*types.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
-	episode := data.(*domain.Episode)
-	episode.ID = uuid.New() // mock ID return from DB
-	entity := domain.RepoResultEntity{Attributes: *episode}
+	requestData := data.(*types.EpisodeRequestData)
+	fmt.Printf("\n\nEPISODE REQUEST DATA: %+v\n\n", requestData)
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	insertFields := "(created_by, deleted, description, director, enabled, season_id, status, title, year)"
+	values := "($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+	returnFields := "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
+	query := fmt.Sprintf("INSERT INTO %s %s VALUES %s RETURNING %s", "episode", insertFields, values, returnFields)
+
+	entity := types.EpisodeEntity{}
+	if err := r.db.QueryRow(
+		query,
+		9999,
+		requestData.Deleted,
+		requestData.Description,
+		requestData.Director,
+		requestData.Enabled,
+		requestData.SeasonID,
+		requestData.Status,
+		requestData.Title,
+		requestData.Year,
+	).Scan(
+		&entity.CreatedBy,
+		&entity.Deleted,
+		&entity.Description,
+		&entity.Director,
+		&entity.Enabled,
+		&entity.ID,
+		&entity.SeasonID,
+		&entity.Status,
+		&entity.Title,
+		&entity.Year,
+	); err != nil {
+		return nil, err
+	}
+	fmt.Printf("\n\nEPISODE RETURNED FROM DB: %+v\n\n", entity)
+
+	entityWrapper := types.RepoResultEntity{Attributes: entity}
+
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entityWrapper},
 	}
 	fmt.Printf("Result in episodeRepository.Create: %+v\n", result)
 
@@ -82,7 +103,7 @@ func (r *episodeRepository) Delete(id uuid.UUID) error {
 }
 
 // Detail
-func (r *episodeRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
+func (r *episodeRepository) Detail(id uuid.UUID) (*types.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
@@ -94,7 +115,7 @@ func (r *episodeRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err := rows.Scan(&episodeEntity{})
+		err := rows.Scan(&types.EpisodeEntity{})
 		if err != nil {
 			log.Error().Err(err).Msg("error on episodeRepository.Detail row scan")
 		}
@@ -106,34 +127,34 @@ func (r *episodeRepository) Detail(id uuid.UUID) (*domain.RepoResult, error) {
 	}
 
 	// // TODO: marshal rows to RepoResult
-	// result := &domain.RepoResult{}
+	// result := &types.RepoResult{}
 
-	data := &domain.Episode{
+	data := &types.Episode{
 		ID: id,
 	}
-	entity := domain.RepoResultEntity{Attributes: *data}
+	entity := types.RepoResultEntity{Attributes: *data}
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entity},
 	}
 	fmt.Printf("Result in episodeRepository.Detail: %+v\n", result)
 	return result, nil
 }
 
 // List
-func (r *episodeRepository) List(m *domain.ListMeta) ([]*domain.RepoResult, error) {
-	data := make([]*domain.RepoResult, 2)
+func (r *episodeRepository) List(m *types.ListMeta) ([]*types.RepoResult, error) {
+	data := make([]*types.RepoResult, 2)
 	return data, nil
 }
 
 // Update
-func (r *episodeRepository) Update(data any) (*domain.RepoResult, error) {
-	episode := data.(*domain.Episode)
+func (r *episodeRepository) Update(data any) (*types.RepoResult, error) {
+	episode := data.(*types.Episode)
 
-	entity := domain.RepoResultEntity{Attributes: *episode}
+	entity := types.RepoResultEntity{Attributes: *episode}
 
-	result := &domain.RepoResult{
-		Data: []domain.RepoResultEntity{entity},
+	result := &types.RepoResult{
+		Data: []types.RepoResultEntity{entity},
 	}
 	fmt.Printf("Result in episodeRepository.Update: %+v\n", result)
 

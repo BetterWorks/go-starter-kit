@@ -10,10 +10,9 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
-	"github.com/jasonsites/gosk-api/internal/application/services"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
 	"github.com/jasonsites/gosk-api/internal/repo"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
@@ -21,8 +20,8 @@ import (
 func (r *resolver) Application() *application.Application {
 	if r.application == nil {
 		services := &application.Services{
-			EpisodeService: services.NewEpisodeService(r.repoEpisode),
-			SeasonService:  services.NewSeasonService(r.repoSeason),
+			EpisodeService: application.NewEpisodeService(r.repoEpisode),
+			SeasonService:  application.NewSeasonService(r.repoSeason),
 		}
 		app := application.NewApplication(services)
 		r.application = app
@@ -51,7 +50,7 @@ func (r *resolver) HTTPServer() *httpapi.Server {
 		server, err := httpapi.NewServer(&httpapi.Config{
 			Application: r.application,
 			BaseURL:     r.config.HttpAPI.BaseURL,
-			Logger: &domain.Logger{
+			Logger: &types.Logger{
 				Enabled: r.config.Logger.Http.Enabled,
 				Level:   r.config.Logger.Http.Level,
 				Log:     r.log,
@@ -124,11 +123,11 @@ func (r *resolver) PostgreSQLClient() *sql.DB {
 }
 
 // RepositoryEpisode provides a singleton EpisodeRepository (interface) implementation
-func (r *resolver) RepositoryEpisode() domain.Repository {
+func (r *resolver) RepositoryEpisode() types.Repository {
 	if r.repoEpisode == nil {
 
 		repo, err := repo.NewEpisodeRepository(&repo.EpisodeRepoConfig{
-			Logger: &domain.Logger{
+			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
 				Level:   r.config.Logger.Repo.Level,
 				Log:     r.log,
@@ -146,11 +145,11 @@ func (r *resolver) RepositoryEpisode() domain.Repository {
 }
 
 // RepositorySeason provides a singleton SeasonRepository (interface) implementation
-func (r *resolver) RepositorySeason() domain.Repository {
+func (r *resolver) RepositorySeason() types.Repository {
 	if r.repoSeason == nil {
 
 		repo, err := repo.NewSeasonRepository(&repo.SeasonRepoConfig{
-			Logger: &domain.Logger{
+			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
 				Level:   r.config.Logger.Repo.Level,
 				Log:     r.log,

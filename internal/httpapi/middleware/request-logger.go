@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 
@@ -25,7 +25,7 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 		}
 
 		if logger.Enabled {
-			requestID := ctx.Locals(CorrelationContextKey).(*domain.Trace).RequestID
+			requestID := ctx.Locals(CorrelationContextKey).(*types.Trace).RequestID
 			log := logger.Log.With().Str("req_id", requestID).Logger()
 
 			var body []byte
@@ -58,7 +58,7 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 // RequestLoggerConfig
 type RequestLoggerConfig struct {
 	ContextKey string
-	Logger     *domain.Logger
+	Logger     *types.Logger
 	Next       func(c *fiber.Ctx) bool
 }
 
