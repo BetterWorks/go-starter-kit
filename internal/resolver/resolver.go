@@ -5,8 +5,8 @@ import (
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 
@@ -18,8 +18,8 @@ type Config struct {
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *sql.DB
-	RepoEpisode      domain.Repository
-	RepoSeason       domain.Repository
+	RepoEpisode      types.Repository
+	RepoSeason       types.Repository
 }
 
 // Application metadata
@@ -36,8 +36,8 @@ type resolver struct {
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *sql.DB
-	repoEpisode      domain.Repository
-	repoSeason       domain.Repository
+	repoEpisode      types.Repository
+	repoSeason       types.Repository
 }
 
 // NewResolver returns a new Resolver instance

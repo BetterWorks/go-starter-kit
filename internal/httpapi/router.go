@@ -7,10 +7,10 @@ import (
 	"github.com/gofiber/helmet/v2"
 
 	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/application/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
 	"github.com/jasonsites/gosk-api/internal/httpapi/routes"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 type controllerRegistry struct {
@@ -35,7 +35,7 @@ func (s *Server) configureMiddleware() {
 }
 
 // registerControllers
-func registerControllers(logger *domain.Logger, services *application.Services) *controllerRegistry {
+func registerControllers(logger *types.Logger, services *application.Services) *controllerRegistry {
 	return &controllerRegistry{
 		EpisodeController: controllers.NewController(&controllers.Config{
 			Service: services.EpisodeService,

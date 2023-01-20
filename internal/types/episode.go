@@ -1,19 +1,47 @@
-package domain
+package types
 
 import (
 	"github.com/google/uuid"
 )
 
-// Episode defines an example domain resource
+// EpisodeRequestData defines an Episode domain model for data attributes request binding
+type EpisodeRequestData struct {
+	Deleted     bool
+	Description string
+	Director    string
+	Enabled     bool
+	SeasonID    uuid.UUID
+	Status      uint8
+	Title       string
+	Year        uint16
+}
+
+// EpisodeEntity defines an Episode database entity
+type EpisodeEntity struct {
+	CreatedBy   uint32
+	Deleted     bool
+	Description string
+	Director    string
+	Enabled     bool
+	ID          uuid.UUID
+	SeasonID    uuid.UUID
+	Status      uint8
+	Title       string
+	Year        uint16
+}
+
+// Episode defines an Episode domain model for application logic and response serialization
 type Episode struct {
-	ID          uuid.UUID `json:"id,omitempty"`
+	ID          uuid.UUID `json:"-"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Year        uint16    `json:"year"`
 	Director    string    `json:"director"`
-	SeasonID    uuid.UUID `json:"season_id"`
-	Status      int       `json:"status"`
+	Year        uint16    `json:"year"`
+	SeasonID    uuid.UUID `json:"season_id,omitempty"`
+	Status      uint8     `json:"status"`
+	Enabled     bool      `json:"enabled"`
 	Deleted     bool      `json:"-"`
+	CreatedBy   uint32    `json:"created_by"`
 }
 
 // Discover
@@ -34,14 +62,16 @@ func (m *Episode) SerializeModel(r *RepoResult, solo bool) (*Episode, error) {
 // SerializeResponse
 func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	if solo {
-		model := r.Data[0].Attributes.(Episode)
+		model := r.Data[0].Attributes.(EpisodeEntity)
 		res := &JSONResponseSingle{
 			Data: &ResponseResource{
 				Type: DomainType.Episode,
 				ID:   model.ID,
 				Properties: &Episode{
+					CreatedBy:   model.CreatedBy,
 					Description: model.Description,
 					Director:    model.Director,
+					Enabled:     model.Enabled,
 					SeasonID:    model.SeasonID,
 					Status:      model.Status,
 					Title:       model.Title,
