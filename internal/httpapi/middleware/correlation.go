@@ -55,21 +55,23 @@ type CorrelationConfig struct {
 
 // setCorrelationConfig sets default CorrelationConfig values and CorrelationContextKey
 func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
+	// default config
 	var conf = &CorrelationConfig{
 		ContextKey: "Trace",
 		Generator:  uuid.NewString,
 		Header:     "X-Request-ID",
 		Next:       nil,
 	}
-	// override defaults
-	if c.Header != "" {
-		conf.Header = c.Header
+
+	// default overrides
+	if c.ContextKey != "" {
+		conf.ContextKey = c.ContextKey
 	}
 	if c.Generator != nil {
 		conf.Generator = c.Generator
 	}
-	if c.ContextKey != "" {
-		conf.ContextKey = c.ContextKey
+	if c.Header != "" {
+		conf.Header = c.Header
 	}
 
 	// set exposed context key for use in other handlers

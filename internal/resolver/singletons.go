@@ -1,11 +1,12 @@
 package resolver
 
 import (
-	"database/sql"
+	"context"
 	"encoding/json"
 	"log"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 
 	"github.com/jasonsites/gosk-api/config"
@@ -104,19 +105,25 @@ func (r *resolver) Metadata() *Metadata {
 	return r.metadata
 }
 
-// PostgresClient provides a singleton postgres sql.DB instance
-func (r *resolver) PostgreSQLClient() *sql.DB {
+// PostgresClient provides a singleton postgres pgxpool.Pool instance
+func (r *resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			log.Panicf("invalid postgres config: %v", err)
 		}
 
-		db, err := sql.Open("postgres", postgresDSN(r.config.Postgres))
+		dbpool, err := pgxpool.New(context.Background(), postgresDSN(r.config.Postgres))
 		if err != nil {
 			log.Panicf("error resolving postgres client: %v", err)
 		}
+		defer dbpool.Close()
 
-		r.postgreSQLClient = db
+		// db, err := sql.Open("postgres", postgresDSN(r.config.Postgres))
+		// if err != nil {
+		// 	log.Panicf("error resolving postgres client: %v", err)
+		// }
+
+		r.postgreSQLClient = dbpool
 	}
 
 	return r.postgreSQLClient
@@ -154,7 +161,7 @@ func (r *resolver) RepositorySeason() types.Repository {
 				Level:   r.config.Logger.Repo.Level,
 				Log:     r.log,
 			},
-			PostgreSQLClient: r.postgreSQLClient,
+			DBClient: r.postgreSQLClient,
 		})
 		if err != nil {
 			log.Panicf("error resolving season repository: %v", err)

@@ -1,6 +1,9 @@
 package types
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -9,34 +12,36 @@ type SeasonRequestData struct {
 	Deleted     bool
 	Description string
 	Enabled     bool
-	Status      uint8
+	Status      uint16
 	Title       string
 }
 
 // SeasonEntity defines a Season database entity
 type SeasonEntity struct {
+	CreatedBy   uint32
+	CreatedOn   time.Time
 	Deleted     bool
-	Description string
+	Description sql.NullString
 	Enabled     bool
-	ID          string
-	Status      int
+	ID          uuid.UUID
+	ModifiedBy  sql.NullInt32
+	ModifiedOn  sql.NullTime
+	Status      sql.NullInt16
 	Title       string
 }
 
 // Season defines a Season domain model for application logic and response serialization
 type Season struct {
-	CreatedBy   uint32    `json:"created_by"`
-	Deleted     bool      `json:"-"`
-	Description string    `json:"description"`
-	Enabled     bool      `json:"enabled"`
-	ID          uuid.UUID `json:"id,omitempty"`
-	Status      uint8     `json:"status"`
+	ID          uuid.UUID `json:"-"`
 	Title       string    `json:"title"`
-}
-
-// Discover
-func (s *Season) Discover() *Season {
-	return s
+	Description string    `json:"description"`
+	Status      uint16    `json:"status"`
+	Enabled     bool      `json:"enabled"`
+	Deleted     bool      `json:"-"`
+	CreatedOn   time.Time `json:"created_on"`
+	CreatedBy   uint32    `json:"created_by"`
+	ModifiedOn  time.Time `json:"modified_on"`
+	ModifiedBy  uint32    `json:"modified_by"`
 }
 
 // SerializeModel
@@ -46,48 +51,48 @@ func (s *Season) SerializeModel(r *RepoResult, solo bool) (*Season, error) {
 	}
 
 	// TODO: List case
+
 	return nil, nil
 }
 
 // SerializeResponse
 func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	if solo {
-		model := r.Data[0].Attributes.(Season)
-		res := &JSONResponseSingle{
+		model := r.Data[0].Attributes.(SeasonEntity)
+
+		properties := &Season{
+			CreatedBy:   model.CreatedBy,
+			CreatedOn:   model.CreatedOn,
+			Description: model.Description.String,
+			Enabled:     model.Enabled,
+			Status:      uint16(model.Status.Int16),
+			Title:       model.Title,
+		}
+
+		result := &JSONResponseSolo{
 			Data: &ResponseResource{
-				Type: DomainType.Season,
-				ID:   model.ID,
-				Properties: &Season{
-					Description: model.Description,
-					Title:       model.Title,
-					Status:      model.Status,
-				},
+				Type:       DomainType.Season,
+				ID:         model.ID,
+				Properties: properties,
 			},
 		}
-		return res, nil
-	} else {
-		res := &JSONResponseMulti{
-			Meta: &APIMetadata{
-				Paging: &ListPaging{
-					Limit:  r.Metadata.Paging.Limit,
-					Offset: r.Metadata.Paging.Offset,
-					Total:  r.Metadata.Paging.Total,
-				},
-			},
-			Data: &[]ResponseResource{},
-		}
-		return res, nil
+
+		return result, nil
+
 	}
+
+	meta := &APIMetadata{
+		Paging: &ListPaging{
+			Limit:  r.Metadata.Paging.Limit,
+			Offset: r.Metadata.Paging.Offset,
+			Total:  r.Metadata.Paging.Total,
+		},
+	}
+
+	result := &JSONResponseMult{
+		Meta: meta,
+		Data: &[]ResponseResource{},
+	}
+
+	return result, nil
 }
-
-// func (b *Season) Set(data Settable) Settable {
-// 	s := data.(*Season)
-
-// 	b.Deleted = s.Deleted
-// 	b.Description = s.Description
-// 	b.ID = s.ID
-// 	b.Status = s.Status
-// 	b.Title = s.Title
-
-// 	return b
-// }

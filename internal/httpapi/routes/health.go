@@ -8,9 +8,9 @@ import (
 )
 
 // HealthRouter implements an router group for healthcheck
-func HealthRouter(app *fiber.App, c *ctrl.Controller, ns string) {
+func HealthRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/health"
-	g := app.Group(prefix)
+	g := r.Group(prefix)
 
 	status := func(ctx *fiber.Ctx) error {
 		ctx.Status(http.StatusOK)

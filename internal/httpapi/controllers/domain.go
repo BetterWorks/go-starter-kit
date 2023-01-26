@@ -35,7 +35,7 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		fmt.Printf("\n\nINSIDE CREATE HANDLER\n\n")
 		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
-		fmt.Printf("REQUEST ID: %+v\n", requestID)
+		fmt.Printf("REQUEST ID: %s\n", requestID)
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Create Controller called")
 
@@ -50,7 +50,7 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 		model := resource.Data.Properties
 		fmt.Printf("Model in Create Controller: %+v\n", model)
 
-		result, err := c.service.Create(model)
+		result, err := c.service.Create(ctx.Context(), model)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func (c *Controller) Delete() fiber.Handler {
 			return err
 		}
 
-		if err := c.service.Delete(uuid); err != nil {
+		if err := c.service.Delete(ctx.Context(), uuid); err != nil {
 			return err
 		}
 		ctx.Status(http.StatusNoContent)
@@ -100,7 +100,7 @@ func (c *Controller) Detail() fiber.Handler {
 			return err
 		}
 
-		result, err := c.service.Detail(uuid)
+		result, err := c.service.Detail(ctx.Context(), uuid)
 		if err != nil {
 			return err
 		}
@@ -120,8 +120,13 @@ func (c *Controller) List() fiber.Handler {
 
 		// TODO: get/bind/validate query from request
 
-		query := &types.ListMeta{} // c.getQueryData(ctx)
-		result, err := c.service.List(query)
+		query := &types.ListMeta{
+			Paging: types.ListPaging{
+				Limit:  20,
+				Offset: 0,
+			},
+		}
+		result, err := c.service.List(ctx.Context(), query)
 		if err != nil {
 			return err
 		}
@@ -155,7 +160,7 @@ func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 		model := resource.Data.Properties // TODO: problem here with ID
 		fmt.Printf("Model in Update Controller: %+v\n", model)
 
-		result, err := c.service.Update(model)
+		result, err := c.service.Update(ctx.Context(), model)
 		if err != nil {
 			return err
 		}

@@ -1,8 +1,7 @@
 package resolver
 
 import (
-	"database/sql"
-
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
@@ -17,7 +16,7 @@ type Config struct {
 	HTTPServer       *httpapi.Server
 	Log              *zerolog.Logger
 	Metadata         *Metadata
-	PostgreSQLClient *sql.DB
+	PostgreSQLClient *pgxpool.Pool
 	RepoEpisode      types.Repository
 	RepoSeason       types.Repository
 }
@@ -35,7 +34,7 @@ type resolver struct {
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
-	postgreSQLClient *sql.DB
+	postgreSQLClient *pgxpool.Pool
 	repoEpisode      types.Repository
 	repoSeason       types.Repository
 }

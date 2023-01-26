@@ -25,6 +25,6 @@ func EpisodeRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	g.Get("/", c.List())
 	g.Get("/:id", c.Detail())
 	g.Post("/", c.Create(createResource))
-	g.Patch("/:id", c.Update(createResource))
+	g.Put("/:id", c.Update(createResource))
 	g.Delete("/:id", c.Delete())
 }
