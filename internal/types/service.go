@@ -1,6 +1,10 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 // Service
 type Service interface {
@@ -12,21 +16,21 @@ type Service interface {
 }
 
 type ServiceCreator interface {
-	Create(any) (*JSONResponseSingle, error)
+	Create(context.Context, any) (*JSONResponseSolo, error)
 }
 
 type ServiceDeleter interface {
-	Delete(uuid.UUID) error
+	Delete(context.Context, uuid.UUID) error
 }
 
 type ServiceDetailRetriever interface {
-	Detail(uuid.UUID) (*JSONResponseSingle, error)
+	Detail(context.Context, uuid.UUID) (*JSONResponseSolo, error)
 }
 
 type ServiceListRetriever interface {
-	List(*ListMeta) (*JSONResponseMulti, error)
+	List(context.Context, *ListMeta) (*JSONResponseMult, error)
 }
 
 type ServiceUpdater interface {
-	Update(any) (*JSONResponseSingle, error)
+	Update(context.Context, any) (*JSONResponseSolo, error)
 }

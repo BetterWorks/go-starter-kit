@@ -1,6 +1,8 @@
 package types
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 )
 
@@ -15,27 +17,27 @@ type Repository interface {
 
 // RepoCreator
 type RepoCreator interface {
-	Create(any) (*RepoResult, error)
+	Create(context.Context, any) (*RepoResult, error)
 }
 
 // RepoDeleter
 type RepoDeleter interface {
-	Delete(id uuid.UUID) error
+	Delete(context.Context, uuid.UUID) error
 }
 
 // RepoDetailRetriever
 type RepoDetailRetriever interface {
-	Detail(id uuid.UUID) (*RepoResult, error)
+	Detail(context.Context, uuid.UUID) (*RepoResult, error)
 }
 
 // RepoListRetriever
 type RepoListRetriever interface {
-	List(*ListMeta) ([]*RepoResult, error)
+	List(context.Context, *ListMeta) ([]*RepoResult, error)
 }
 
 // RepoUpdater
 type RepoUpdater interface {
-	Update(any) (*RepoResult, error)
+	Update(context.Context, any) (*RepoResult, error)
 }
 
 // temp documentation

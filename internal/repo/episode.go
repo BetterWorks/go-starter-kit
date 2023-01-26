@@ -1,23 +1,24 @@
 package repo
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // EpisodeRepoConfig defines the input to NewEpisodeRepository
 type EpisodeRepoConfig struct {
-	DBClient *sql.DB       `validate:"required"`
+	DBClient *pgxpool.Pool `validate:"required"`
 	Logger   *types.Logger `validate:"required"`
 }
 
 // episodeRepository
 type episodeRepository struct {
-	db     *sql.DB
+	db     *pgxpool.Pool
 	logger *types.Logger
 }
 
@@ -43,20 +44,22 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 }
 
 // Create
-func (r *episodeRepository) Create(data any) (*types.RepoResult, error) {
+func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
 	requestData := data.(*types.EpisodeRequestData)
 	fmt.Printf("\n\nEPISODE REQUEST DATA: %+v\n\n", requestData)
 
+	tableName := "episode"
 	insertFields := "(created_by, deleted, description, director, enabled, season_id, status, title, year)"
 	values := "($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 	returnFields := "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
-	query := fmt.Sprintf("INSERT INTO %s %s VALUES %s RETURNING %s", "episode", insertFields, values, returnFields)
+	query := fmt.Sprintf("INSERT INTO %s %s VALUES %s RETURNING %s", tableName, insertFields, values, returnFields)
 
 	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(
+		context.Background(),
 		query,
 		9999,
 		requestData.Deleted,
@@ -94,7 +97,7 @@ func (r *episodeRepository) Create(data any) (*types.RepoResult, error) {
 }
 
 // Delete
-func (r *episodeRepository) Delete(id uuid.UUID) error {
+func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	log := r.logger.Log.With().Str("tags", "repo").Logger()
 	log.Info().Msg("episodeRepository Delete called")
 
@@ -103,13 +106,13 @@ func (r *episodeRepository) Delete(id uuid.UUID) error {
 }
 
 // Detail
-func (r *episodeRepository) Detail(id uuid.UUID) (*types.RepoResult, error) {
+func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
 	log := r.logger.Log.With().Str("req_id", "").Logger()
 	log.Info().Msg("episodeRepository Create called")
 
 	fmt.Printf("ID in episodeRepository.Detail: %s\n", id)
 
-	rows, err := r.db.Query("select * from episode where id = ?", id)
+	rows, err := r.db.Query(ctx, "SELECT * FROM episode WHERE id = ?", id)
 	if err != nil {
 		log.Error().Err(err).Msg("error on episodeRepository.Detail db query")
 	}
@@ -142,13 +145,13 @@ func (r *episodeRepository) Detail(id uuid.UUID) (*types.RepoResult, error) {
 }
 
 // List
-func (r *episodeRepository) List(m *types.ListMeta) ([]*types.RepoResult, error) {
+func (r *episodeRepository) List(ctx context.Context, m *types.ListMeta) ([]*types.RepoResult, error) {
 	data := make([]*types.RepoResult, 2)
 	return data, nil
 }
 
 // Update
-func (r *episodeRepository) Update(data any) (*types.RepoResult, error) {
+func (r *episodeRepository) Update(ctx context.Context, data any) (*types.RepoResult, error) {
 	episode := data.(*types.Episode)
 
 	entity := types.RepoResultEntity{Attributes: *episode}

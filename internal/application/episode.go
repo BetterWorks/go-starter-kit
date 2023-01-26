@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -20,8 +21,8 @@ func NewEpisodeService(r types.Repository) *episodeService {
 }
 
 // Create
-func (s *episodeService) Create(data any) (*types.JSONResponseSingle, error) {
-	result, err := s.Repo.Create(data.(*types.EpisodeRequestData))
+func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
+	result, err := s.Repo.Create(ctx, data.(*types.EpisodeRequestData))
 	if err != nil {
 		fmt.Printf("Error in episodeService.Create on s.Repo.Create %+v\n", err)
 		return nil, err
@@ -34,15 +35,15 @@ func (s *episodeService) Create(data any) (*types.JSONResponseSingle, error) {
 		fmt.Printf("Error in episodeService.Create on model.SerializeResponse %+v\n", err)
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSingle)
+	r := res.(*types.JSONResponseSolo)
 	fmt.Printf("Result in episodeService.Create on model.SerializeResponse (casted) %+v\n", r)
 
 	return r, nil
 }
 
 // Delete
-func (s *episodeService) Delete(id uuid.UUID) error {
-	if err := s.Repo.Delete(id); err != nil {
+func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
+	if err := s.Repo.Delete(ctx, id); err != nil {
 		fmt.Printf("Error in episodeService.Delete: %+v\n", err)
 		return err
 	}
@@ -51,8 +52,8 @@ func (s *episodeService) Delete(id uuid.UUID) error {
 }
 
 // Detail
-func (s *episodeService) Detail(id uuid.UUID) (*types.JSONResponseSingle, error) {
-	result, err := s.Repo.Detail(id)
+func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
+	result, err := s.Repo.Detail(ctx, id)
 	if err != nil {
 		fmt.Printf("Error in episodeService.Detail: %+v\n", err)
 		return nil, err
@@ -65,19 +66,19 @@ func (s *episodeService) Detail(id uuid.UUID) (*types.JSONResponseSingle, error)
 		// log error
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSingle)
+	r := res.(*types.JSONResponseSolo)
 
 	return r, nil
 }
 
 // List
-func (s *episodeService) List(m *types.ListMeta) (*types.JSONResponseMulti, error) {
+func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JSONResponseMult, error) {
 	return nil, nil // TODO
 }
 
 // Update
-func (s *episodeService) Update(data any) (*types.JSONResponseSingle, error) {
-	result, err := s.Repo.Update(data.(*types.EpisodeRequestData))
+func (s *episodeService) Update(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
+	result, err := s.Repo.Update(ctx, data.(*types.EpisodeRequestData))
 	if err != nil {
 		fmt.Printf("Error in episodeService.Update %+v\n", err)
 		return nil, err
@@ -90,7 +91,7 @@ func (s *episodeService) Update(data any) (*types.JSONResponseSingle, error) {
 		// log error
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSingle)
+	r := res.(*types.JSONResponseSolo)
 
 	return r, nil
 }
