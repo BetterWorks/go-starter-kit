@@ -44,11 +44,6 @@ type Episode struct {
 	CreatedBy   uint32    `json:"created_by"`
 }
 
-// Discover
-func (m *Episode) Discover() *Episode {
-	return m
-}
-
 // SerializeModel
 func (m *Episode) SerializeModel(r *RepoResult, solo bool) (*Episode, error) {
 	if solo {
@@ -63,7 +58,7 @@ func (m *Episode) SerializeModel(r *RepoResult, solo bool) (*Episode, error) {
 func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	if solo {
 		model := r.Data[0].Attributes.(EpisodeEntity)
-		res := &JSONResponseSingle{
+		res := &JSONResponseSolo{
 			Data: &ResponseResource{
 				Type: DomainType.Episode,
 				ID:   model.ID,
@@ -83,7 +78,7 @@ func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, err
 	}
 
 	// TODO: List case
-	res := &JSONResponseMulti{
+	res := &JSONResponseMult{
 		Meta: &APIMetadata{
 			Paging: &ListPaging{
 				Limit:  r.Metadata.Paging.Limit,

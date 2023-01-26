@@ -8,9 +8,9 @@ import (
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed
-func BaseRouter(app *fiber.App, c *ctrl.Controller, ns string) {
+func BaseRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns
-	g := app.Group(prefix)
+	g := r.Group(prefix)
 
 	get := func(ctx *fiber.Ctx) error {
 		headers := ctx.GetReqHeaders()

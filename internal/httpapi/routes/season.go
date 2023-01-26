@@ -8,9 +8,9 @@ import (
 )
 
 // SeasonRouter implements an example router group for a Season resource
-func SeasonRouter(app *fiber.App, c *ctrl.Controller, ns string) {
+func SeasonRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/seasons"
-	g := app.Group(prefix)
+	g := r.Group(prefix)
 
 	// createResource provides a JSONRequestBody with data binding for the Season model
 	// for use with Create/Update Controller methods

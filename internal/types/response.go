@@ -25,24 +25,24 @@ type ResponseResource struct {
 	Properties any               `json:"properties"` // TODO
 }
 
-// JSONResponseSingle
-type JSONResponseSingle struct {
+// JSONResponseSolo
+type JSONResponseSolo struct {
 	Meta *APIMetadata      `json:"meta,omitempty"`
 	Data *ResponseResource `json:"data"`
 }
 
 // Discover
-func (r *JSONResponseSingle) Discover() Discoverable {
+func (r *JSONResponseSolo) Discover() Discoverable {
 	return r
 }
 
-// JSONResponseMulti
-type JSONResponseMulti struct {
+// JSONResponseMult
+type JSONResponseMult struct {
 	Meta *APIMetadata        `json:"meta"`
 	Data *[]ResponseResource `json:"data"`
 }
 
 // Discover
-func (r *JSONResponseMulti) Discover() Discoverable {
+func (r *JSONResponseMult) Discover() Discoverable {
 	return r
 }

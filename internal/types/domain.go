@@ -12,7 +12,7 @@ type ResponseSerializer interface {
 
 // DomainModel defines the interface for all domain models
 type DomainModel interface {
-	Discoverable
+	// Discoverable
 	ResponseSerializer
 }
 
