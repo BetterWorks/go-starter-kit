@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/jasonsites/gosk-api/internal/resolver"
-	_ "github.com/lib/pq"
 )
 
 func main() {
