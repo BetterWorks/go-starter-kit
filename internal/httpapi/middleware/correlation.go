@@ -8,9 +8,6 @@ import (
 
 // TODO https://opentracing.io/
 
-// CorrelationContextKey
-var CorrelationContextKey string
-
 // Correlation
 func Correlation(config *CorrelationConfig) fiber.Handler {
 	conf := setCorrelationConfig(config)
@@ -57,7 +54,7 @@ type CorrelationConfig struct {
 func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
 	// default config
 	var conf = &CorrelationConfig{
-		ContextKey: "Trace",
+		ContextKey: types.CorrelationContextKey,
 		Generator:  uuid.NewString,
 		Header:     "X-Request-ID",
 		Next:       nil,
@@ -73,9 +70,6 @@ func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
 	if c.Header != "" {
 		conf.Header = c.Header
 	}
-
-	// set exposed context key for use in other handlers
-	CorrelationContextKey = conf.ContextKey
 
 	return conf
 }
