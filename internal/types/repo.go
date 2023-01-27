@@ -37,7 +37,7 @@ type RepoListRetriever interface {
 
 // RepoUpdater
 type RepoUpdater interface {
-	Update(context.Context, any) (*RepoResult, error)
+	Update(context.Context, any, uuid.UUID) (*RepoResult, error)
 }
 
 // temp documentation

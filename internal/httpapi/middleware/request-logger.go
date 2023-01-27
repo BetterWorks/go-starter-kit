@@ -25,7 +25,7 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 		}
 
 		if logger.Enabled {
-			requestID := ctx.Locals(CorrelationContextKey).(*types.Trace).RequestID
+			requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 			log := logger.Log.With().Str("req_id", requestID).Logger()
 
 			var body []byte

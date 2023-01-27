@@ -8,7 +8,6 @@ require (
 	github.com/gofiber/helmet/v2 v2.2.18
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.2.0
-	github.com/lib/pq v1.10.7
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.13.0
 )

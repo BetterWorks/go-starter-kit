@@ -32,5 +32,5 @@ type ServiceListRetriever interface {
 }
 
 type ServiceUpdater interface {
-	Update(context.Context, any) (*JSONResponseSolo, error)
+	Update(context.Context, any, uuid.UUID) (*JSONResponseSolo, error)
 }

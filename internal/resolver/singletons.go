@@ -20,12 +20,30 @@ import (
 // Application provides a singleton application.Application instance
 func (r *resolver) Application() *application.Application {
 	if r.application == nil {
+		svcEpisode := application.NewEpisodeService(&application.EpisodeServiceConfig{
+			Logger: &types.Logger{
+				Enabled: r.config.Logger.SvcExample.Enabled,
+				Level:   r.config.Logger.SvcExample.Level,
+				Log:     r.log,
+			},
+			Repo: r.repoEpisode,
+		})
+
+		svcSeason := application.NewSeasonService(&application.SeasonServiceConfig{
+			Logger: &types.Logger{
+				Enabled: r.config.Logger.SvcExample.Enabled,
+				Level:   r.config.Logger.SvcExample.Level,
+				Log:     r.log,
+			},
+			Repo: r.repoSeason,
+		})
+
 		services := &application.Services{
-			EpisodeService: application.NewEpisodeService(r.repoEpisode),
-			SeasonService:  application.NewSeasonService(r.repoSeason),
+			EpisodeService: svcEpisode,
+			SeasonService:  svcSeason,
 		}
-		app := application.NewApplication(services)
-		r.application = app
+
+		r.application = application.NewApplication(services)
 	}
 
 	return r.application
@@ -38,7 +56,6 @@ func (r *resolver) Config() *config.Configuration {
 		if err != nil {
 			log.Panicf("error resolving config: %v", err)
 		}
-
 		r.config = c
 	}
 
@@ -63,7 +80,6 @@ func (r *resolver) HTTPServer() *httpapi.Server {
 		if err != nil {
 			log.Panicf("error resolving http server: %v", err)
 		}
-
 		r.httpServer = server
 	}
 
@@ -105,41 +121,34 @@ func (r *resolver) Metadata() *Metadata {
 	return r.metadata
 }
 
-// PostgresClient provides a singleton postgres pgxpool.Pool instance
+// PostgreSQLClient provides a singleton postgres pgxpool.Pool instance
 func (r *resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			log.Panicf("invalid postgres config: %v", err)
 		}
 
-		dbpool, err := pgxpool.New(context.Background(), postgresDSN(r.config.Postgres))
+		client, err := pgxpool.New(context.TODO(), postgresDSN(r.config.Postgres))
 		if err != nil {
 			log.Panicf("error resolving postgres client: %v", err)
 		}
-		defer dbpool.Close()
 
-		// db, err := sql.Open("postgres", postgresDSN(r.config.Postgres))
-		// if err != nil {
-		// 	log.Panicf("error resolving postgres client: %v", err)
-		// }
-
-		r.postgreSQLClient = dbpool
+		r.postgreSQLClient = client
 	}
 
 	return r.postgreSQLClient
 }
 
-// RepositoryEpisode provides a singleton EpisodeRepository (interface) implementation
+// RepositoryEpisode provides a singleton repo.episodeRepository instance
 func (r *resolver) RepositoryEpisode() types.Repository {
 	if r.repoEpisode == nil {
-
 		repo, err := repo.NewEpisodeRepository(&repo.EpisodeRepoConfig{
+			DBClient: r.postgreSQLClient,
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
 				Level:   r.config.Logger.Repo.Level,
 				Log:     r.log,
 			},
-			DBClient: r.postgreSQLClient,
 		})
 		if err != nil {
 			log.Panicf("error resolving episode repository: %v", err)
@@ -151,17 +160,16 @@ func (r *resolver) RepositoryEpisode() types.Repository {
 	return r.repoEpisode
 }
 
-// RepositorySeason provides a singleton SeasonRepository (interface) implementation
+// RepositorySeason provides a singleton repo.seasonRepository instance
 func (r *resolver) RepositorySeason() types.Repository {
 	if r.repoSeason == nil {
-
 		repo, err := repo.NewSeasonRepository(&repo.SeasonRepoConfig{
+			DBClient: r.postgreSQLClient,
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
 				Level:   r.config.Logger.Repo.Level,
 				Log:     r.log,
 			},
-			DBClient: r.postgreSQLClient,
 		})
 		if err != nil {
 			log.Panicf("error resolving season repository: %v", err)

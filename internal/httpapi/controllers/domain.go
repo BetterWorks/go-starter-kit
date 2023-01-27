@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
 	"github.com/jasonsites/gosk-api/internal/types"
 )
 
@@ -34,7 +33,7 @@ func NewController(c *Config) *Controller {
 func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		fmt.Printf("\n\nINSIDE CREATE HANDLER\n\n")
-		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		fmt.Printf("REQUEST ID: %s\n", requestID)
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Create Controller called")
@@ -65,7 +64,7 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 // Delete
 func (c *Controller) Delete() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Delete Controller called")
 
@@ -88,7 +87,7 @@ func (c *Controller) Delete() fiber.Handler {
 // Detail
 func (c *Controller) Detail() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Detail Controller called")
 
@@ -114,7 +113,7 @@ func (c *Controller) Detail() fiber.Handler {
 // List
 func (c *Controller) List() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("List Controller called")
 
@@ -140,19 +139,23 @@ func (c *Controller) List() fiber.Handler {
 // Update
 func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(mw.CorrelationContextKey).(*types.Trace).RequestID
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("Update Controller called")
 
-		id := ctx.Params("id")
-		fmt.Printf("ID: %s", id)
+		idString := ctx.Params("id")
+		id, err := uuid.Parse(idString)
+		if err != nil {
+			// log error
+			return err
+		}
 
 		// TODO: validate body
 
 		resource := f()
 
 		if err := ctx.BodyParser(resource); err != nil {
-			fmt.Printf("Error in BodyParser %+v\n", err)
+			// log error
 			return err
 		}
 		fmt.Printf("Resource in Update Controller: %+v\n", *resource)
@@ -160,8 +163,9 @@ func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 		model := resource.Data.Properties // TODO: problem here with ID
 		fmt.Printf("Model in Update Controller: %+v\n", model)
 
-		result, err := c.service.Update(ctx.Context(), model)
+		result, err := c.service.Update(ctx.Context(), model, id)
 		if err != nil {
+			// log error
 			return err
 		}
 		fmt.Printf("Result in Update Controller: %+v\n", result)
