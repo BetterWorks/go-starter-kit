@@ -17,13 +17,13 @@ type DomainModel interface {
 }
 
 // domainRegistry defines a domain registry (constants)
-type domainRegistry struct {
+type DomainRegistry struct {
 	Episode string
 	Season  string
 }
 
 // DomainType exposes constants for all domain types
-var DomainType = domainRegistry{
+var DomainType = DomainRegistry{
 	Episode: "episode",
 	Season:  "season",
 }

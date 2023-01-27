@@ -151,7 +151,7 @@ func (r *episodeRepository) List(ctx context.Context, m *types.ListMeta) ([]*typ
 }
 
 // Update
-func (r *episodeRepository) Update(ctx context.Context, data any) (*types.RepoResult, error) {
+func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
 	episode := data.(*types.Episode)
 
 	entity := types.RepoResultEntity{Attributes: *episode}
