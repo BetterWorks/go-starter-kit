@@ -8,23 +8,35 @@ import (
 	"github.com/jasonsites/gosk-api/internal/types"
 )
 
-type episodeService struct {
-	Repo   types.Repository
-	logger *types.Logger
+type EpisodeServiceConfig struct {
+	Logger *types.Logger    `validate:"required"`
+	Repo   types.Repository `validate:"required"`
 }
 
-func NewEpisodeService(r types.Repository) *episodeService {
+type episodeService struct {
+	logger *types.Logger
+	repo   types.Repository
+}
+
+func NewEpisodeService(c *EpisodeServiceConfig) *episodeService {
+	log := c.Logger.Log.With().Str("tags", "service,episode").Logger()
+	logger := &types.Logger{
+		Enabled: c.Logger.Enabled,
+		Level:   c.Logger.Level,
+		Log:     &log,
+	}
+
 	return &episodeService{
-		Repo:   r,
-		logger: nil,
+		logger: logger,
+		repo:   c.Repo,
 	}
 }
 
 // Create
 func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Create(ctx, data.(*types.EpisodeRequestData))
+	result, err := s.repo.Create(ctx, data.(*types.EpisodeRequestData))
 	if err != nil {
-		fmt.Printf("Error in episodeService.Create on s.Repo.Create %+v\n", err)
+		fmt.Printf("Error in episodeService.Create on s.repo.Create %+v\n", err)
 		return nil, err
 	}
 	fmt.Printf("Result in episodeService.Create %+v\n", result)
@@ -43,7 +55,7 @@ func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONRespo
 
 // Delete
 func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
-	if err := s.Repo.Delete(ctx, id); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		fmt.Printf("Error in episodeService.Delete: %+v\n", err)
 		return err
 	}
@@ -53,7 +65,7 @@ func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
 
 // Detail
 func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Detail(ctx, id)
+	result, err := s.repo.Detail(ctx, id)
 	if err != nil {
 		fmt.Printf("Error in episodeService.Detail: %+v\n", err)
 		return nil, err
@@ -77,8 +89,8 @@ func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JS
 }
 
 // Update
-func (s *episodeService) Update(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Update(ctx, data.(*types.EpisodeRequestData))
+func (s *episodeService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
+	result, err := s.repo.Update(ctx, data.(*types.EpisodeRequestData), id)
 	if err != nil {
 		fmt.Printf("Error in episodeService.Update %+v\n", err)
 		return nil, err

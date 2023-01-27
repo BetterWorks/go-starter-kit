@@ -2,49 +2,66 @@ package application
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
 )
 
-type seasonService struct {
-	Repo   types.Repository
-	logger *types.Logger
+type SeasonServiceConfig struct {
+	Logger *types.Logger    `validate:"required"`
+	Repo   types.Repository `validate:"required"`
 }
 
-func NewSeasonService(r types.Repository) *seasonService {
+type seasonService struct {
+	logger *types.Logger
+	repo   types.Repository
+}
+
+func NewSeasonService(c *SeasonServiceConfig) *seasonService {
+	log := c.Logger.Log.With().Str("tags", "service,season").Logger()
+	logger := &types.Logger{
+		Enabled: c.Logger.Enabled,
+		Level:   c.Logger.Level,
+		Log:     &log,
+	}
+
 	return &seasonService{
-		Repo:   r,
-		logger: nil,
+		logger: logger,
+		repo:   c.Repo,
 	}
 }
 
 // Create
 func (s *seasonService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Create(ctx, data.(*types.SeasonRequestData))
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Season Service Create called")
+
+	result, err := s.repo.Create(ctx, data.(*types.SeasonRequestData))
 	if err != nil {
-		fmt.Printf("Error in seasonService.Create on s.Repo.Create %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	fmt.Printf("Result in seasonService.Create %+v\n", result)
 
 	model := &types.Season{}
-	res, err := model.SerializeResponse(result, true)
+	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		fmt.Printf("Error in seasonService.Create on model.SerializeResponse %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSolo)
-	fmt.Printf("Result in seasonService.Create on model.SerializeResponse (casted) %+v\n", r)
+	res := sr.(*types.JSONResponseSolo)
 
-	return r, nil
+	return res, nil
 }
 
 // Delete
 func (s *seasonService) Delete(ctx context.Context, id uuid.UUID) error {
-	if err := s.Repo.Delete(ctx, id); err != nil {
-		fmt.Printf("Error in seasonService.Delete: %+v\n", err)
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Season Service Delete called")
+
+	if err := s.repo.Delete(ctx, id); err != nil {
+		log.Error().Err(err)
 		return err
 	}
 
@@ -53,47 +70,55 @@ func (s *seasonService) Delete(ctx context.Context, id uuid.UUID) error {
 
 // Detail
 func (s *seasonService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Detail(ctx, id)
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Season Service Detail called")
+
+	result, err := s.repo.Detail(ctx, id)
 	if err != nil {
-		fmt.Printf("Error in seasonService.Detail: %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	fmt.Printf("Result in seasonService.Detail: %+v\n", result)
 
 	model := &types.Season{}
-	res, err := model.SerializeResponse(result, true)
+	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		// log error
-		fmt.Printf("Error in seasonService.Detail: %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSolo)
+	res := sr.(*types.JSONResponseSolo)
 
-	return r, nil
+	return res, nil
 }
 
 // List
 func (s *seasonService) List(ctx context.Context, m *types.ListMeta) (*types.JSONResponseMult, error) {
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Season Service List called")
+
 	return nil, nil // TODO
 }
 
 // Update
-func (s *seasonService) Update(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
-	result, err := s.Repo.Update(ctx, data.(*types.SeasonRequestData))
+func (s *seasonService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Season Service Update called")
+
+	result, err := s.repo.Update(ctx, data.(*types.SeasonRequestData), id)
 	if err != nil {
-		fmt.Printf("Error in seasonService.Update %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	fmt.Printf("Result in seasonService.Update %+v\n", result)
 
 	model := &types.Season{}
-	res, err := model.SerializeResponse(result, true)
+	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		// log error
-		fmt.Printf("Error in seasonService.Update on model.SerializeResponse %+v\n", err)
+		log.Error().Err(err)
 		return nil, err
 	}
-	r := res.(*types.JSONResponseSolo)
+	res := sr.(*types.JSONResponseSolo)
 
-	return r, nil
+	return res, nil
 }
