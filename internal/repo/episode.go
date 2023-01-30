@@ -20,6 +20,7 @@ type EpisodeRepoConfig struct {
 type episodeRepository struct {
 	db     *pgxpool.Pool
 	logger *types.Logger
+	name   string
 }
 
 // NewEpisodeRepository
@@ -38,6 +39,7 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 	repo := &episodeRepository{
 		db:     c.DBClient,
 		logger: logger,
+		name:   "episode",
 	}
 
 	return repo, nil
@@ -45,23 +47,27 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 
 // Create
 func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
-	log := r.logger.Log.With().Str("req_id", "").Logger()
-	log.Info().Msg("episodeRepository Create called")
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Episode Repository Create called")
 
 	requestData := data.(*types.EpisodeRequestData)
-	fmt.Printf("\n\nEPISODE REQUEST DATA: %+v\n\n", requestData)
-
-	tableName := "episode"
-	insertFields := "(created_by, deleted, description, director, enabled, season_id, status, title, year)"
-	values := "($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-	returnFields := "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
-	query := fmt.Sprintf("INSERT INTO %s %s VALUES %s RETURNING %s", tableName, insertFields, values, returnFields)
-
 	entity := types.EpisodeEntity{}
+	query := func() string {
+		var (
+			statement    = "INSERT INTO %s %s VALUES %s RETURNING %s"
+			table        = r.name
+			insertFields = "(created_by, deleted, description, director, enabled, season_id, status, title, year)"
+			values       = "($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+			returnFields = "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
+		)
+		return fmt.Sprintf(statement, table, insertFields, values, returnFields)
+	}()
+
 	if err := r.db.QueryRow(
 		context.Background(),
 		query,
-		9999,
+		9999, // TODO
 		requestData.Deleted,
 		requestData.Description,
 		requestData.Director,
@@ -82,84 +88,136 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 		&entity.Title,
 		&entity.Year,
 	); err != nil {
+		log.Error().Err(err)
 		return nil, err
 	}
-	fmt.Printf("\n\nEPISODE RETURNED FROM DB: %+v\n\n", entity)
 
 	entityWrapper := types.RepoResultEntity{Attributes: entity}
-
-	result := &types.RepoResult{
-		Data: []types.RepoResultEntity{entityWrapper},
-	}
-	fmt.Printf("Result in episodeRepository.Create: %+v\n", result)
+	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
 	return result, nil
 }
 
 // Delete
 func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	log := r.logger.Log.With().Str("tags", "repo").Logger()
-	log.Info().Msg("episodeRepository Delete called")
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Episode Repository Delete called")
 
-	fmt.Printf("ID in episodeRepository.Delete: %s\n", id)
+	entity := types.EpisodeEntity{}
+	query := func() string {
+		var (
+			statement    = "DELETE FROM %s WHERE id = ('%s'::uuid) RETURNING %s"
+			table        = r.name
+			returnFields = "id"
+		)
+		return fmt.Sprintf(statement, table, id, returnFields)
+	}()
+
+	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
+		log.Error().Err(err)
+		return err
+	}
+
 	return nil
 }
 
 // Detail
 func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
-	log := r.logger.Log.With().Str("req_id", "").Logger()
-	log.Info().Msg("episodeRepository Create called")
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Episode Repository Detail called")
 
-	fmt.Printf("ID in episodeRepository.Detail: %s\n", id)
+	entity := types.EpisodeEntity{}
+	query := func() string {
+		var (
+			statement    = "SELECT %s FROM %s WHERE id = ('%s'::uuid)"
+			returnFields = "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
+			table        = r.name
+		)
+		return fmt.Sprintf(statement, returnFields, table, id)
+	}()
 
-	rows, err := r.db.Query(ctx, "SELECT * FROM episode WHERE id = ?", id)
-	if err != nil {
-		log.Error().Err(err).Msg("error on episodeRepository.Detail db query")
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&types.EpisodeEntity{})
-		if err != nil {
-			log.Error().Err(err).Msg("error on episodeRepository.Detail row scan")
-		}
-		fmt.Printf("rows in episodeRepository.Detail: %+v\n", rows)
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Error().Err(err).Msg("rows error in episodeRepository.Detail")
+	if err := r.db.QueryRow(ctx, query).Scan(
+		&entity.CreatedBy,
+		&entity.Deleted,
+		&entity.Description,
+		&entity.Director,
+		&entity.Enabled,
+		&entity.ID,
+		&entity.SeasonID,
+		&entity.Status,
+		&entity.Title,
+		&entity.Year,
+	); err != nil {
+		log.Error().Err(err)
+		return nil, err
 	}
 
-	// // TODO: marshal rows to RepoResult
-	// result := &types.RepoResult{}
+	entityWrapper := types.RepoResultEntity{Attributes: entity}
+	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
-	data := &types.Episode{
-		ID: id,
-	}
-	entity := types.RepoResultEntity{Attributes: *data}
-
-	result := &types.RepoResult{
-		Data: []types.RepoResultEntity{entity},
-	}
-	fmt.Printf("Result in episodeRepository.Detail: %+v\n", result)
 	return result, nil
 }
 
 // List
 func (r *episodeRepository) List(ctx context.Context, m *types.ListMeta) ([]*types.RepoResult, error) {
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Episode Repository List called")
+
 	data := make([]*types.RepoResult, 2)
 	return data, nil
 }
 
 // Update
 func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
-	episode := data.(*types.Episode)
+	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
+	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	log.Info().Msg("Episode Repository Update called")
 
-	entity := types.RepoResultEntity{Attributes: *episode}
+	requestData := data.(*types.EpisodeRequestData)
+	entity := types.EpisodeEntity{}
+	query := func() string {
+		var (
+			statement    = "UPDATE %s SET %s WHERE id = ('%s'::uuid) RETURNING %s"
+			table        = r.name
+			values       = "created_by=$1,deleted=$2,description=$3,director=$4,enabled=$5,season_id=$6,status=$7,title=$8,year=$9"
+			returnFields = "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
+		)
+		return fmt.Sprintf(statement, table, values, id, returnFields)
+	}()
 
-	result := &types.RepoResult{
-		Data: []types.RepoResultEntity{entity},
+	if err := r.db.QueryRow(
+		ctx,
+		query,
+		9999, // TODO: temp mock for user id
+		requestData.Deleted,
+		requestData.Description,
+		requestData.Director,
+		requestData.Enabled,
+		requestData.SeasonID,
+		requestData.Status,
+		requestData.Title,
+		requestData.Year,
+	).Scan(
+		&entity.CreatedBy,
+		&entity.Deleted,
+		&entity.Description,
+		&entity.Director,
+		&entity.Enabled,
+		&entity.ID,
+		&entity.SeasonID,
+		&entity.Status,
+		&entity.Title,
+		&entity.Year,
+	); err != nil {
+		log.Error().Err(err)
+		return nil, err
 	}
-	fmt.Printf("Result in episodeRepository.Update: %+v\n", result)
+
+	entityWrapper := types.RepoResultEntity{Attributes: entity}
+	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
 	return result, nil
 }
