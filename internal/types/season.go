@@ -12,7 +12,7 @@ type SeasonRequestData struct {
 	Deleted     bool
 	Description string
 	Enabled     bool
-	Status      uint16
+	Status      uint32
 	Title       string
 }
 
@@ -26,7 +26,7 @@ type SeasonEntity struct {
 	ID          uuid.UUID
 	ModifiedBy  sql.NullInt32
 	ModifiedOn  sql.NullTime
-	Status      sql.NullInt16
+	Status      sql.NullInt32
 	Title       string
 }
 
@@ -35,7 +35,7 @@ type Season struct {
 	ID          uuid.UUID `json:"-"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Status      uint16    `json:"status"`
+	Status      uint32    `json:"status"`
 	Enabled     bool      `json:"enabled"`
 	Deleted     bool      `json:"-"`
 	CreatedOn   time.Time `json:"created_on"`
@@ -65,7 +65,7 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 			CreatedOn:   model.CreatedOn,
 			Description: model.Description.String,
 			Enabled:     model.Enabled,
-			Status:      uint16(model.Status.Int16),
+			Status:      uint32(model.Status.Int32),
 			Title:       model.Title,
 		}
 

@@ -108,18 +108,7 @@ func (r *seasonRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Sprintf(statement, table, id, returnFields)
 	}()
 
-	if err := r.db.QueryRow(ctx, query).Scan(
-		&entity.CreatedBy,
-		// &entity.CreatedOn,
-		&entity.Deleted,
-		&entity.Description,
-		&entity.Enabled,
-		&entity.ID,
-		&entity.ModifiedBy,
-		// &entity.ModifiedOn,
-		&entity.Status,
-		&entity.Title,
-	); err != nil {
+	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
 		log.Error().Err(err)
 		return err
 	}

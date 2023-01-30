@@ -1,6 +1,9 @@
 package types
 
 import (
+	"database/sql"
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -11,23 +14,26 @@ type EpisodeRequestData struct {
 	Director    string
 	Enabled     bool
 	SeasonID    uuid.UUID
-	Status      uint8
+	Status      uint32
 	Title       string
-	Year        uint16
+	Year        uint32
 }
 
 // EpisodeEntity defines an Episode database entity
 type EpisodeEntity struct {
 	CreatedBy   uint32
+	CreatedOn   time.Time
 	Deleted     bool
 	Description string
 	Director    string
 	Enabled     bool
 	ID          uuid.UUID
+	ModifiedBy  sql.NullInt32
+	ModifiedOn  sql.NullTime
 	SeasonID    uuid.UUID
-	Status      uint8
+	Status      sql.NullInt32
 	Title       string
-	Year        uint16
+	Year        uint32
 }
 
 // Episode defines an Episode domain model for application logic and response serialization
@@ -36,12 +42,15 @@ type Episode struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Director    string    `json:"director"`
-	Year        uint16    `json:"year"`
+	Year        uint32    `json:"year"`
 	SeasonID    uuid.UUID `json:"season_id,omitempty"`
-	Status      uint8     `json:"status"`
+	Status      uint32    `json:"status"`
 	Enabled     bool      `json:"enabled"`
 	Deleted     bool      `json:"-"`
+	CreatedOn   time.Time `json:"created_on"`
 	CreatedBy   uint32    `json:"created_by"`
+	ModifiedOn  time.Time `json:"modified_on"`
+	ModifiedBy  uint32    `json:"modified_by"`
 }
 
 // SerializeModel
@@ -68,7 +77,7 @@ func (m *Episode) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, err
 					Director:    model.Director,
 					Enabled:     model.Enabled,
 					SeasonID:    model.SeasonID,
-					Status:      model.Status,
+					Status:      uint32(model.Status.Int32),
 					Title:       model.Title,
 					Year:        model.Year,
 				},
