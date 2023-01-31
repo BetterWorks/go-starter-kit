@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
@@ -97,7 +98,24 @@ func (s *seasonService) List(ctx context.Context, m *types.ListMeta) (*types.JSO
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 	log.Info().Msg("Season Service List called")
 
-	return nil, nil // TODO
+	listMeta := types.ListMeta{}
+
+	result, err := s.repo.List(ctx, listMeta)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	model := &types.Season{}
+	sr, err := model.SerializeResponse(result, false)
+	if err != nil {
+		fmt.Printf("\n\nERROR after serializer: %+v\n\n", err)
+		log.Error().Err(err)
+		return nil, err
+	}
+	res := sr.(*types.JSONResponseMult)
+
+	return res, nil
 }
 
 // Update

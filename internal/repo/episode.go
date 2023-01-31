@@ -161,13 +161,65 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 }
 
 // List
-func (r *episodeRepository) List(ctx context.Context, m *types.ListMeta) ([]*types.RepoResult, error) {
+func (r *episodeRepository) List(ctx context.Context, m types.ListMeta) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 	log.Info().Msg("Episode Repository List called")
 
-	data := make([]*types.RepoResult, 2)
-	return data, nil
+	query := func() string {
+		var (
+			statement    = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
+			returnFields = "created_by, deleted, description, director, enabled, id, season_id, status, title, year"
+			table        = r.name
+			orderBy      = "id"
+			direction    = "desc"
+			limit        = "20"
+			offset       = "0"
+		)
+		return fmt.Sprintf(statement, returnFields, table, orderBy, direction, limit, offset)
+	}()
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	result := &types.RepoResult{
+		Data: make([]types.RepoResultEntity, 0),
+	}
+
+	for rows.Next() {
+		entity := types.EpisodeEntity{}
+
+		if err := rows.Scan(
+			&entity.CreatedBy,
+			&entity.Deleted,
+			&entity.Description,
+			&entity.Director,
+			&entity.Enabled,
+			&entity.ID,
+			&entity.SeasonID,
+			&entity.Status,
+			&entity.Title,
+			&entity.Year,
+		); err != nil {
+			log.Error().Err(err)
+			return nil, err
+		}
+
+		entityWrapper := types.RepoResultEntity{Attributes: entity}
+		result.Data = append(result.Data, entityWrapper)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // Update

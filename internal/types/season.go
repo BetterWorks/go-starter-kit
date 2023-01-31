@@ -57,8 +57,10 @@ func (s *Season) SerializeModel(r *RepoResult, solo bool) (*Season, error) {
 
 // SerializeResponse
 func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
-	if solo {
-		model := r.Data[0].Attributes.(SeasonEntity)
+
+	// setData maps a season entity repo record to a season response resource
+	setData := func(record RepoResultEntity) ResponseResource {
+		model := record.Attributes.(SeasonEntity)
 
 		properties := &Season{
 			CreatedBy:   model.CreatedBy,
@@ -69,29 +71,39 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 			Title:       model.Title,
 		}
 
-		result := &JSONResponseSolo{
-			Data: &ResponseResource{
-				Type:       DomainType.Season,
-				ID:         model.ID,
-				Properties: properties,
-			},
+		return ResponseResource{
+			Type:       DomainType.Season,
+			ID:         model.ID,
+			Properties: properties,
 		}
-
-		return result, nil
-
 	}
 
+	// single resource response
+	if solo {
+		resource := setData(r.Data[0])
+		result := &JSONResponseSolo{Data: resource}
+
+		return result, nil
+	}
+
+	// multiple resource response
 	meta := &APIMetadata{
-		Paging: &ListPaging{
+		Paging: ListPaging{
 			Limit:  r.Metadata.Paging.Limit,
 			Offset: r.Metadata.Paging.Offset,
 			Total:  r.Metadata.Paging.Total,
 		},
 	}
 
+	data := make([]ResponseResource, 0)
+	for _, record := range r.Data {
+		resource := setData(record)
+		data = append(data, resource)
+	}
+
 	result := &JSONResponseMult{
 		Meta: meta,
-		Data: &[]ResponseResource{},
+		Data: data,
 	}
 
 	return result, nil

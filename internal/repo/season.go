@@ -152,19 +152,71 @@ func (r *seasonRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Rep
 	result := &types.RepoResult{
 		Data: []types.RepoResultEntity{entityWrapper},
 	}
-	fmt.Printf("Result in seasonRepository.Create: %+v\n", result)
+	fmt.Printf("Result in seasonRepository.Detail: %+v\n", result)
 
 	return result, nil
 }
 
 // List
-func (r *seasonRepository) List(ctx context.Context, m *types.ListMeta) ([]*types.RepoResult, error) {
+func (r *seasonRepository) List(ctx context.Context, m types.ListMeta) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 	log.Info().Msg("Season Repository List called")
 
-	data := make([]*types.RepoResult, 2)
-	return data, nil
+	query := func() string {
+		var (
+			statement    = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
+			returnFields = "created_by, deleted, description, enabled, id, modified_by, status, title"
+			table        = r.name
+			orderBy      = "id"
+			direction    = "desc"
+			limit        = "20"
+			offset       = "0"
+		)
+		return fmt.Sprintf(statement, returnFields, table, orderBy, direction, limit, offset)
+	}()
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	result := &types.RepoResult{
+		Data: make([]types.RepoResultEntity, 0),
+	}
+
+	for rows.Next() {
+		entity := types.SeasonEntity{}
+
+		if err := rows.Scan(
+			&entity.CreatedBy,
+			// &entity.CreatedOn,
+			&entity.Deleted,
+			&entity.Description,
+			&entity.Enabled,
+			&entity.ID,
+			&entity.ModifiedBy,
+			// &entity.ModifiedOn,
+			&entity.Status,
+			&entity.Title,
+		); err != nil {
+			log.Error().Err(err)
+			return nil, err
+		}
+
+		entityWrapper := types.RepoResultEntity{Attributes: entity}
+		result.Data = append(result.Data, entityWrapper)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // Update

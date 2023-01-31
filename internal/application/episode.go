@@ -97,7 +97,23 @@ func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JS
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 	log.Info().Msg("Episode Service List called")
 
-	return nil, nil // TODO
+	listMeta := types.ListMeta{}
+
+	result, err := s.repo.List(ctx, listMeta)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+
+	model := &types.Episode{}
+	sr, err := model.SerializeResponse(result, false)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, err
+	}
+	res := sr.(*types.JSONResponseMult)
+
+	return res, nil
 }
 
 // Update
