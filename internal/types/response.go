@@ -11,7 +11,7 @@ type JSONResponse interface {
 
 // APIMetadata
 type APIMetadata struct {
-	Paging *ListPaging `json:"paging,omitempty"`
+	Paging ListPaging `json:"paging,omitempty"`
 }
 
 // ResourceMetadata
@@ -27,8 +27,8 @@ type ResponseResource struct {
 
 // JSONResponseSolo
 type JSONResponseSolo struct {
-	Meta *APIMetadata      `json:"meta,omitempty"`
-	Data *ResponseResource `json:"data"`
+	Meta *APIMetadata     `json:"meta,omitempty"`
+	Data ResponseResource `json:"data"`
 }
 
 // Discover
@@ -38,8 +38,8 @@ func (r *JSONResponseSolo) Discover() Discoverable {
 
 // JSONResponseMult
 type JSONResponseMult struct {
-	Meta *APIMetadata        `json:"meta"`
-	Data *[]ResponseResource `json:"data"`
+	Meta *APIMetadata       `json:"meta"`
+	Data []ResponseResource `json:"data"`
 }
 
 // Discover
