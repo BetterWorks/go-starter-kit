@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/application"
@@ -28,9 +30,10 @@ type Metadata struct {
 }
 
 // Resolver provides singleton instances of app components
-type resolver struct {
+type Resolver struct {
 	application      *application.Application
 	config           *config.Configuration
+	context          context.Context
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
@@ -40,14 +43,15 @@ type resolver struct {
 }
 
 // NewResolver returns a new Resolver instance
-func NewResolver(c *Config) *resolver {
+func NewResolver(ctx context.Context, c *Config) *Resolver {
 	if c == nil {
 		c = &Config{}
 	}
 
-	r := &resolver{
+	r := &Resolver{
 		application:      c.Application,
 		config:           c.Config,
+		context:          ctx,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,
@@ -56,19 +60,35 @@ func NewResolver(c *Config) *resolver {
 		repoSeason:       c.RepoSeason,
 	}
 
-	r.initialize()
-
 	return r
 }
 
-// initialize
-func (r *resolver) initialize() {
-	r.Config()
-	r.Metadata()
-	r.Log()
-	r.PostgreSQLClient()
-	r.RepositoryEpisode()
-	r.RepositorySeason()
-	r.Application()
-	r.HTTPServer()
+// initialize bootstraps the application in dependency order
+func (r *Resolver) Initialize() error {
+	if _, err := r.Config(); err != nil {
+		return err
+	}
+	if _, err := r.Metadata(); err != nil {
+		return err
+	}
+	if _, err := r.Log(); err != nil {
+		return err
+	}
+	if _, err := r.PostgreSQLClient(); err != nil {
+		return err
+	}
+	if _, err := r.RepositoryEpisode(); err != nil {
+		return err
+	}
+	if _, err := r.RepositorySeason(); err != nil {
+		return err
+	}
+	if _, err := r.Application(); err != nil {
+		return err
+	}
+	if _, err := r.HTTPServer(); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -2,10 +2,10 @@ package application
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 type SeasonServiceConfig struct {
@@ -18,7 +18,11 @@ type seasonService struct {
 	repo   types.Repository
 }
 
-func NewSeasonService(c *SeasonServiceConfig) *seasonService {
+func NewSeasonService(c *SeasonServiceConfig) (*seasonService, error) {
+	if err := validation.Validate.Struct(c); err != nil {
+		return nil, err
+	}
+
 	log := c.Logger.Log.With().Str("tags", "service,season").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
@@ -26,28 +30,29 @@ func NewSeasonService(c *SeasonServiceConfig) *seasonService {
 		Log:     &log,
 	}
 
-	return &seasonService{
+	service := &seasonService{
 		logger: logger,
 		repo:   c.Repo,
 	}
+
+	return service, nil
 }
 
 // Create
 func (s *seasonService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Service Create called")
 
 	result, err := s.repo.Create(ctx, data.(*types.SeasonRequestData))
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Season{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -59,10 +64,9 @@ func (s *seasonService) Create(ctx context.Context, data any) (*types.JSONRespon
 func (s *seasonService) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Service Delete called")
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return err
 	}
 
@@ -73,18 +77,17 @@ func (s *seasonService) Delete(ctx context.Context, id uuid.UUID) error {
 func (s *seasonService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Service Detail called")
 
 	result, err := s.repo.Detail(ctx, id)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Season{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -96,21 +99,19 @@ func (s *seasonService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONRe
 func (s *seasonService) List(ctx context.Context, m *types.ListMeta) (*types.JSONResponseMult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Service List called")
 
 	listMeta := types.ListMeta{}
 
 	result, err := s.repo.List(ctx, listMeta)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Season{}
 	sr, err := model.SerializeResponse(result, false)
 	if err != nil {
-		fmt.Printf("\n\nERROR after serializer: %+v\n\n", err)
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseMult)
@@ -122,18 +123,17 @@ func (s *seasonService) List(ctx context.Context, m *types.ListMeta) (*types.JSO
 func (s *seasonService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Service Update called")
 
 	result, err := s.repo.Update(ctx, data.(*types.SeasonRequestData), id)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Season{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)

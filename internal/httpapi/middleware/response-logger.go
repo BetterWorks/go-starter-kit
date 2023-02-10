@@ -35,7 +35,7 @@ func ResponseLogger(config *ResponseLoggerConfig) fiber.Handler {
 
 			headers, err := json.Marshal(ctx.GetRespHeaders())
 			if err != nil {
-				// log.Error().Err(err)
+				// log.Error().Err(err).Msg("")
 				fmt.Printf("Error marshalling response headers: %+v\n", err)
 				return err
 			}
