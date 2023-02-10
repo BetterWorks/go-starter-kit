@@ -63,7 +63,7 @@ func NewServer(c *Config) (*Server, error) {
 }
 
 // Serve starts the HTTP server on the configured address
-func (s *Server) Serve() {
+func (s *Server) Serve() error {
 	addr := s.baseURL + ":" + strconv.FormatUint(uint64(s.port), 10)
-	s.App.Listen(addr)
+	return s.App.Listen(addr)
 }

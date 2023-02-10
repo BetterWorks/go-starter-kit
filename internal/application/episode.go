@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 type EpisodeServiceConfig struct {
@@ -17,7 +18,11 @@ type episodeService struct {
 	repo   types.Repository
 }
 
-func NewEpisodeService(c *EpisodeServiceConfig) *episodeService {
+func NewEpisodeService(c *EpisodeServiceConfig) (*episodeService, error) {
+	if err := validation.Validate.Struct(c); err != nil {
+		return nil, err
+	}
+
 	log := c.Logger.Log.With().Str("tags", "service,episode").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
@@ -25,28 +30,29 @@ func NewEpisodeService(c *EpisodeServiceConfig) *episodeService {
 		Log:     &log,
 	}
 
-	return &episodeService{
+	service := &episodeService{
 		logger: logger,
 		repo:   c.Repo,
 	}
+
+	return service, nil
 }
 
 // Create
 func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Episode Service Create called")
 
 	result, err := s.repo.Create(ctx, data.(*types.EpisodeRequestData))
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -58,10 +64,9 @@ func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONRespo
 func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Episode Service Delete called")
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return err
 	}
 
@@ -72,18 +77,17 @@ func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
 func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Episode Service Detail called")
 
 	result, err := s.repo.Detail(ctx, id)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -95,20 +99,19 @@ func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONR
 func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JSONResponseMult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Episode Service List called")
 
 	listMeta := types.ListMeta{}
 
 	result, err := s.repo.List(ctx, listMeta)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, false)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseMult)
@@ -120,18 +123,17 @@ func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JS
 func (s *episodeService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Episode Service Update called")
 
 	result, err := s.repo.Update(ctx, data.(*types.EpisodeRequestData), id)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)

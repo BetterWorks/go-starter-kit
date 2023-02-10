@@ -32,7 +32,7 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 			if len(ctx.Body()) > 0 {
 				b := new(bytes.Buffer)
 				if err := json.Compact(b, ctx.Body()); err != nil {
-					// log.Error().Err(err)
+					// log.Error().Err(err).Msg("")
 					return err
 				}
 				body = b.Bytes()
@@ -40,7 +40,7 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 
 			headers, err := json.Marshal(ctx.GetReqHeaders())
 			if err != nil {
-				// log.Error().Err(err)
+				// log.Error().Err(err).Msg("")
 				return err
 			}
 

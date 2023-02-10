@@ -10,6 +10,43 @@ import (
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
+// seasonEntityDefinition
+type seasonEntityDefinition struct {
+	Field seasonEntityFields
+	Name  string
+}
+
+// seasonEntityFields
+type seasonEntityFields struct {
+	CreatedBy   string
+	CreatedOn   string
+	Deleted     string
+	Description string
+	Enabled     string
+	ID          string
+	ModifiedBy  string
+	ModifiedOn  string
+	Status      string
+	Title       string
+}
+
+// seasonEntity
+var seasonEntity = seasonEntityDefinition{
+	Name: "season",
+	Field: seasonEntityFields{
+		CreatedBy:   "created_by",
+		CreatedOn:   "created_on",
+		Deleted:     "deleted",
+		Description: "description",
+		Enabled:     "enabled",
+		ID:          "id",
+		ModifiedBy:  "modified_by",
+		ModifiedOn:  "modified_on",
+		Status:      "status",
+		Title:       "title",
+	},
+}
+
 // SeasonRepoConfig defines the input to NewSeasonRepository
 type SeasonRepoConfig struct {
 	DBClient *pgxpool.Pool `validate:"required"`
@@ -18,9 +55,9 @@ type SeasonRepoConfig struct {
 
 // seasonRepository
 type seasonRepository struct {
+	Entity seasonEntityDefinition
 	db     *pgxpool.Pool
 	logger *types.Logger
-	name   string
 }
 
 // NewSeasonRepository
@@ -37,9 +74,9 @@ func NewSeasonRepository(c *SeasonRepoConfig) (*seasonRepository, error) {
 	}
 
 	repo := &seasonRepository{
+		Entity: seasonEntity,
 		db:     c.DBClient,
 		logger: logger,
-		name:   "season",
 	}
 
 	return repo, nil
@@ -49,19 +86,37 @@ func NewSeasonRepository(c *SeasonRepoConfig) (*seasonRepository, error) {
 func (r *seasonRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Repository Create called")
 
 	requestData := data.(*types.SeasonRequestData)
 	entity := types.SeasonEntity{}
+
 	query := func() string {
 		var (
-			statement    = "INSERT INTO %s %s VALUES %s RETURNING %s"
-			table        = r.name
-			insertFields = "(created_by, deleted, description, enabled, status, title)"
-			values       = "($1, $2, $3, $4, $5, $6)"
-			returnFields = "created_by, deleted, description, enabled, id, status, title"
+			statement = "INSERT INTO %s %s VALUES %s RETURNING %s"
+			field     = r.Entity.Field
+			name      = r.Entity.Name
 		)
-		return fmt.Sprintf(statement, table, insertFields, values, returnFields)
+
+		insertFields, values := buildInsertFieldsAndValues(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.Status,
+			field.Title,
+		)
+
+		returnFields := buildReturnFields(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.ID,
+			field.Status,
+			field.Title,
+		)
+
+		return fmt.Sprintf(statement, name, insertFields, values, returnFields)
 	}()
 
 	if err := r.db.QueryRow(
@@ -82,7 +137,7 @@ func (r *seasonRepository) Create(ctx context.Context, data any) (*types.RepoRes
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
@@ -96,20 +151,31 @@ func (r *seasonRepository) Create(ctx context.Context, data any) (*types.RepoRes
 func (r *seasonRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Repository Delete called")
 
 	entity := types.SeasonEntity{}
 	query := func() string {
 		var (
-			statement    = "DELETE FROM %s WHERE id = ('%s'::uuid) RETURNING %s"
-			table        = r.name
-			returnFields = "created_by, deleted, description, enabled, id, modified_by, status, title"
+			statement = "DELETE FROM %s WHERE id = ('%s'::uuid) RETURNING %s"
+			field     = r.Entity.Field
+			name      = r.Entity.Name
 		)
-		return fmt.Sprintf(statement, table, id, returnFields)
+
+		returnFields := buildReturnFields(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.ID,
+			field.ModifiedBy,
+			field.Status,
+			field.Title,
+		)
+
+		return fmt.Sprintf(statement, name, id, returnFields)
 	}()
 
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return err
 	}
 
@@ -120,39 +186,45 @@ func (r *seasonRepository) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *seasonRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Repository Detail called")
 
 	entity := types.SeasonEntity{}
 	query := func() string {
 		var (
-			statement    = "SELECT %s FROM %s WHERE id = ('%s'::uuid)"
-			returnFields = "created_by, deleted, description, enabled, id, modified_by, status, title"
-			table        = r.name
+			statement = "SELECT %s FROM %s WHERE id = ('%s'::uuid)"
+			field     = r.Entity.Field
+			name      = r.Entity.Name
 		)
-		return fmt.Sprintf(statement, returnFields, table, id)
+
+		returnFields := buildReturnFields(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.ID,
+			field.ModifiedBy,
+			field.Status,
+			field.Title,
+		)
+
+		return fmt.Sprintf(statement, returnFields, name, id)
 	}()
 
 	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
-		// &entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
 		&entity.Enabled,
 		&entity.ID,
 		&entity.ModifiedBy,
-		// &entity.ModifiedOn,
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{
-		Data: []types.RepoResultEntity{entityWrapper},
-	}
-	fmt.Printf("Result in seasonRepository.Detail: %+v\n", result)
+	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
 	return result, nil
 }
@@ -161,24 +233,34 @@ func (r *seasonRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Rep
 func (r *seasonRepository) List(ctx context.Context, m types.ListMeta) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Repository List called")
 
 	query := func() string {
 		var (
-			statement    = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
-			returnFields = "created_by, deleted, description, enabled, id, modified_by, status, title"
-			table        = r.name
-			orderBy      = "id"
-			direction    = "desc"
-			limit        = "20"
-			offset       = "0"
+			statement = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
+			field     = r.Entity.Field
+			name      = r.Entity.Name
+			orderBy   = "title"
+			direction = "asc"
+			limit     = "2"
+			offset    = "0"
 		)
-		return fmt.Sprintf(statement, returnFields, table, orderBy, direction, limit, offset)
+
+		returnFields := buildReturnFields(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.ID,
+			field.ModifiedBy,
+			field.Status,
+			field.Title,
+		)
+		return fmt.Sprintf(statement, returnFields, name, orderBy, direction, limit, offset)
 	}()
 
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
@@ -193,17 +275,15 @@ func (r *seasonRepository) List(ctx context.Context, m types.ListMeta) (*types.R
 
 		if err := rows.Scan(
 			&entity.CreatedBy,
-			// &entity.CreatedOn,
 			&entity.Deleted,
 			&entity.Description,
 			&entity.Enabled,
 			&entity.ID,
 			&entity.ModifiedBy,
-			// &entity.ModifiedOn,
 			&entity.Status,
 			&entity.Title,
 		); err != nil {
-			log.Error().Err(err)
+			log.Error().Err(err).Msg("")
 			return nil, err
 		}
 
@@ -212,7 +292,7 @@ func (r *seasonRepository) List(ctx context.Context, m types.ListMeta) (*types.R
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 
@@ -223,18 +303,36 @@ func (r *seasonRepository) List(ctx context.Context, m types.ListMeta) (*types.R
 func (r *seasonRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
-	log.Info().Msg("Season Repository Update called")
 
 	requestData := data.(*types.SeasonRequestData)
 	entity := types.SeasonEntity{}
 	query := func() string {
 		var (
-			statement    = "UPDATE %s SET %s WHERE id = ('%s'::uuid) RETURNING %s"
-			table        = r.name
-			values       = "created_by=$1,deleted=$2,description=$3,enabled=$4,status=$5,title=$6"
-			returnFields = "created_by, deleted, description, enabled, id, status, title"
+			statement = "UPDATE %s SET %s WHERE id = ('%s'::uuid) RETURNING %s"
+			name      = r.Entity.Name
+			field     = r.Entity.Field
 		)
-		return fmt.Sprintf(statement, table, values, id, returnFields)
+
+		values := buildUpdateValues(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.Status,
+			field.Title,
+		)
+
+		returnFields := buildReturnFields(
+			field.CreatedBy,
+			field.Deleted,
+			field.Description,
+			field.Enabled,
+			field.ID,
+			field.Status,
+			field.Title,
+		)
+
+		return fmt.Sprintf(statement, name, values, id, returnFields)
 	}()
 
 	if err := r.db.QueryRow(
@@ -255,7 +353,7 @@ func (r *seasonRepository) Update(ctx context.Context, data any, id uuid.UUID) (
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 

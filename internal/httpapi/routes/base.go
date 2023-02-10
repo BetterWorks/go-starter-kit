@@ -28,6 +28,7 @@ func BaseRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 				"remoteAddress": remoteAddress,
 			},
 		})
+
 		return nil
 	}
 
