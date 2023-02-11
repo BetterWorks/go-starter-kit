@@ -14,10 +14,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jasonsites/gosk-api.git"
+    "url": "git+https://github.com/BetterWorks/gosk-api.git"
   },
   "bugs": {
-    "url": "https://github.com/jasonsites/gosk-api/issues"
+    "url": "https://github.com/BetterWorks/gosk-api/issues"
   },
-  "homepage": "https://github.com/jasonsites/gosk-api#readme"
+  "homepage": "https://github.com/BetterWorks/gosk-api#readme"
 }

@@ -60,4 +60,4 @@ $ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 1. Create new pull request
 
 ## License
-Copyright (c) 2022-23 Jason Sites
+Copyright (c) 2022-2023 Jason Sites
