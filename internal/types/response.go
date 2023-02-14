@@ -14,6 +14,18 @@ type APIMetadata struct {
 	Paging ListPaging `json:"paging,omitempty"`
 }
 
+// ListMeta
+type ListMeta struct {
+	Paging ListPaging
+}
+
+// ListPaging
+type ListPaging struct {
+	Limit  uint32
+	Offset uint32
+	Total  uint32
+}
+
 // ResourceMetadata
 type ResourceMetadata struct{}
 

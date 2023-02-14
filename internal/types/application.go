@@ -58,7 +58,7 @@ type ServiceDetailRetriever interface {
 }
 
 type ServiceListRetriever interface {
-	List(context.Context, *ListMeta) (*JSONResponseMult, error)
+	List(context.Context, QueryData) (*JSONResponseMult, error)
 }
 
 type ServiceUpdater interface {

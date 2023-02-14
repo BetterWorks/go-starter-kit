@@ -7,6 +7,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/helmet/v2 v2.2.24
 	github.com/google/uuid v1.3.0
+	github.com/hetiansu5/urlquery v1.2.7
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0

@@ -32,7 +32,7 @@ type RepoDetailRetriever interface {
 
 // RepoListRetriever
 type RepoListRetriever interface {
-	List(context.Context, ListMeta) (*RepoResult, error)
+	List(context.Context, QueryData) (*RepoResult, error)
 }
 
 // RepoUpdater
