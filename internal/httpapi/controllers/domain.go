@@ -109,14 +109,10 @@ func (c *Controller) List() fiber.Handler {
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
 		log.Info().Msg("List Controller called")
 
-		// TODO: get/bind/validate query from request
-		query := &types.ListMeta{
-			Paging: types.ListPaging{
-				Limit:  20,
-				Offset: 0,
-			},
-		}
-		result, err := c.service.List(ctx.Context(), query)
+		qs := ctx.Request().URI().QueryString()
+		query := parseQuery(qs)
+
+		result, err := c.service.List(ctx.Context(), *query)
 		if err != nil {
 			log.Error().Err(err).Msg("")
 			return err

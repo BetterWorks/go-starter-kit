@@ -96,13 +96,11 @@ func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONR
 }
 
 // List
-func (s *episodeService) List(ctx context.Context, m *types.ListMeta) (*types.JSONResponseMult, error) {
+func (s *episodeService) List(ctx context.Context, q types.QueryData) (*types.JSONResponseMult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	listMeta := types.ListMeta{}
-
-	result, err := s.repo.List(ctx, listMeta)
+	result, err := s.repo.List(ctx, q)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		return nil, err

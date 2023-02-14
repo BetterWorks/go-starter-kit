@@ -242,19 +242,24 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 }
 
 // List
-func (r *episodeRepository) List(ctx context.Context, m types.ListMeta) (*types.RepoResult, error) {
+func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
+	var (
+		limit  = *q.Paging.Limit
+		offset = *q.Paging.Offset
+	)
+
 	query := func() string {
 		var (
-			statement = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
-			field     = r.Entity.Field
-			name      = r.Entity.Name
-			orderBy   = "id"
-			direction = "desc"
-			limit     = "20"
-			offset    = "0"
+			statement  = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
+			field      = r.Entity.Field
+			name       = r.Entity.Name
+			orderField = *q.Sorting.Prop
+			orderDir   = *q.Sorting.Order
+			limit      = fmt.Sprint(*q.Paging.Limit)
+			offset     = fmt.Sprint(*q.Paging.Offset)
 		)
 
 		returnFields := buildReturnFields(
@@ -270,7 +275,7 @@ func (r *episodeRepository) List(ctx context.Context, m types.ListMeta) (*types.
 			field.Year,
 		)
 
-		return fmt.Sprintf(statement, returnFields, name, orderBy, direction, limit, offset)
+		return fmt.Sprintf(statement, returnFields, name, orderField, orderDir, limit, offset)
 	}()
 
 	rows, err := r.db.Query(ctx, query)
@@ -311,6 +316,23 @@ func (r *episodeRepository) List(ctx context.Context, m types.ListMeta) (*types.
 	if err := rows.Err(); err != nil {
 		log.Error().Err(err).Msg("")
 		return nil, err
+	}
+
+	// TODO: Investigate https://stackoverflow.com/questions/28888375/run-a-query-with-a-limit-offset-and-also-get-the-total-number-of-rows
+	// total count
+	var total int
+	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
+	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
+		log.Error().Err(err).Msg("")
+		return nil, err
+	}
+
+	result.Metadata = types.RepoResultMetadata{
+		Paging: types.ListPaging{
+			Limit:  uint32(limit),
+			Offset: uint32(offset),
+			Total:  uint32(total),
+		},
 	}
 
 	return result, nil
