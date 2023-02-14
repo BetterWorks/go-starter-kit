@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -93,9 +94,7 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
-	requestData := data.(*types.EpisodeRequestData)
-	entity := types.EpisodeEntity{}
-
+	// build sql query
 	query := func() string {
 		var (
 			statement = "INSERT INTO %s %s VALUES %s RETURNING %s"
@@ -117,11 +116,14 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 
 		returnFields := buildReturnFields(
 			field.CreatedBy,
+			field.CreatedOn,
 			field.Deleted,
 			field.Description,
 			field.Director,
 			field.Enabled,
 			field.ID,
+			field.ModifiedBy,
+			field.ModifiedOn,
 			field.SeasonID,
 			field.Status,
 			field.Title,
@@ -131,25 +133,54 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 		return fmt.Sprintf(statement, name, insertFields, values, returnFields)
 	}()
 
+	// gather data from request, handling for nullable fields
+	requestData := data.(*types.EpisodeRequestData)
+
+	var (
+		createdBy   = 9999 // TODO: temp mock for user id
+		description *string
+		director    *string
+		status      *uint32
+		year        *uint32
+	)
+
+	if requestData.Description != nil {
+		description = requestData.Description
+	}
+	if requestData.Director != nil {
+		director = requestData.Director
+	}
+	if requestData.Status != nil {
+		status = requestData.Status
+	}
+	if requestData.Year != nil {
+		year = requestData.Year
+	}
+
+	// create new entity for db row scan and execute query
+	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(
-		context.Background(),
+		ctx,
 		query,
-		9999, // TODO
+		createdBy,
 		requestData.Deleted,
-		requestData.Description,
-		requestData.Director,
+		description,
+		director,
 		requestData.Enabled,
 		requestData.SeasonID,
-		requestData.Status,
+		status,
 		requestData.Title,
-		requestData.Year,
+		year,
 	).Scan(
 		&entity.CreatedBy,
+		&entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
 		&entity.Director,
 		&entity.Enabled,
 		&entity.ID,
+		&entity.ModifiedBy,
+		&entity.ModifiedOn,
 		&entity.SeasonID,
 		&entity.Status,
 		&entity.Title,
@@ -159,6 +190,7 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 		return nil, err
 	}
 
+	// return new repo result from scanned entity
 	entityWrapper := types.RepoResultEntity{Attributes: entity}
 	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
@@ -170,7 +202,7 @@ func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
-	entity := types.EpisodeEntity{}
+	// build sql query
 	query := func() string {
 		var (
 			statement = "DELETE FROM %s WHERE id = ('%s'::uuid) RETURNING %s"
@@ -183,6 +215,8 @@ func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Sprintf(statement, name, id, returnFields)
 	}()
 
+	// create new entity for db row scan and execute query
+	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
 		log.Error().Err(err).Msg("")
 		return err
@@ -196,7 +230,7 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
-	entity := types.EpisodeEntity{}
+	// build sql query
 	query := func() string {
 		var (
 			statement = "SELECT %s FROM %s WHERE id = ('%s'::uuid)"
@@ -205,11 +239,14 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 		)
 		returnFields := buildReturnFields(
 			field.CreatedBy,
+			field.CreatedOn,
 			field.Deleted,
 			field.Description,
 			field.Director,
 			field.Enabled,
 			field.ID,
+			field.ModifiedBy,
+			field.ModifiedOn,
 			field.SeasonID,
 			field.Status,
 			field.Title,
@@ -219,13 +256,18 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 		return fmt.Sprintf(statement, returnFields, name, id)
 	}()
 
+	// create new entity for db row scan and execute query
+	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
+		&entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
 		&entity.Director,
 		&entity.Enabled,
 		&entity.ID,
+		&entity.ModifiedBy,
+		&entity.ModifiedOn,
 		&entity.SeasonID,
 		&entity.Status,
 		&entity.Title,
@@ -235,6 +277,7 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 		return nil, err
 	}
 
+	// return new repo result from scanned entity
 	entityWrapper := types.RepoResultEntity{Attributes: entity}
 	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
@@ -251,6 +294,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 		offset = *q.Paging.Offset
 	)
 
+	// build sql query
 	query := func() string {
 		var (
 			statement  = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
@@ -264,11 +308,14 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 
 		returnFields := buildReturnFields(
 			field.CreatedBy,
+			field.CreatedOn,
 			field.Deleted,
 			field.Description,
 			field.Director,
 			field.Enabled,
 			field.ID,
+			field.ModifiedBy,
+			field.ModifiedOn,
 			field.SeasonID,
 			field.Status,
 			field.Title,
@@ -278,28 +325,33 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 		return fmt.Sprintf(statement, returnFields, name, orderField, orderDir, limit, offset)
 	}()
 
+	// execute query, returning rows
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		log.Error().Err(err).Msg("")
 		return nil, err
 	}
-
 	defer rows.Close()
 
+	// create new repo result
 	result := &types.RepoResult{
 		Data: make([]types.RepoResultEntity, 0),
 	}
 
+	// scan row data into new entities, appending to repo result
 	for rows.Next() {
 		entity := types.EpisodeEntity{}
 
 		if err := rows.Scan(
 			&entity.CreatedBy,
+			&entity.CreatedOn,
 			&entity.Deleted,
 			&entity.Description,
 			&entity.Director,
 			&entity.Enabled,
 			&entity.ID,
+			&entity.ModifiedBy,
+			&entity.ModifiedOn,
 			&entity.SeasonID,
 			&entity.Status,
 			&entity.Title,
@@ -319,7 +371,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 	}
 
 	// TODO: Investigate https://stackoverflow.com/questions/28888375/run-a-query-with-a-limit-offset-and-also-get-the-total-number-of-rows
-	// total count
+	// query for total count
 	var total int
 	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
 	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
@@ -327,6 +379,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 		return nil, err
 	}
 
+	// populate repo result paging metadata
 	result.Metadata = types.RepoResultMetadata{
 		Paging: types.ListPaging{
 			Limit:  uint32(limit),
@@ -343,8 +396,7 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
-	requestData := data.(*types.EpisodeRequestData)
-	entity := types.EpisodeEntity{}
+	// build sql query
 	query := func() string {
 		var (
 			statement = "UPDATE %s SET %s WHERE id = ('%s'::uuid) RETURNING %s"
@@ -353,11 +405,12 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 		)
 
 		values := buildUpdateValues(
-			field.CreatedBy,
 			field.Deleted,
 			field.Description,
 			field.Director,
 			field.Enabled,
+			field.ModifiedBy,
+			field.ModifiedOn,
 			field.SeasonID,
 			field.Status,
 			field.Title,
@@ -366,11 +419,14 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 
 		returnFields := buildReturnFields(
 			field.CreatedBy,
+			field.CreatedOn,
 			field.Deleted,
 			field.Description,
 			field.Director,
 			field.Enabled,
 			field.ID,
+			field.ModifiedBy,
+			field.ModifiedOn,
 			field.SeasonID,
 			field.Status,
 			field.Title,
@@ -380,18 +436,46 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 		return fmt.Sprintf(statement, name, values, id, returnFields)
 	}()
 
+	// gather data from request, handling for nullable fields
+	requestData := data.(*types.EpisodeRequestData)
+
+	var (
+		description *string
+		director    *string
+		modifiedBy  = 9999 // TODO: temp mock for user id
+		modifiedOn  = time.Now()
+		status      *uint32
+		year        *uint32
+	)
+
+	if requestData.Description != nil {
+		description = requestData.Description
+	}
+	if requestData.Director != nil {
+		director = requestData.Director
+	}
+	if requestData.Status != nil {
+		status = requestData.Status
+	}
+	if requestData.Year != nil {
+		year = requestData.Year
+	}
+
+	// create new entity for db row scan and execute query
+	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
-		9999, // TODO: temp mock for user id
 		requestData.Deleted,
-		requestData.Description,
-		requestData.Director,
+		description,
+		director,
 		requestData.Enabled,
+		modifiedBy,
+		modifiedOn,
 		requestData.SeasonID,
-		requestData.Status,
+		status,
 		requestData.Title,
-		requestData.Year,
+		year,
 	).Scan(
 		&entity.CreatedBy,
 		&entity.Deleted,
@@ -408,6 +492,7 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 		return nil, err
 	}
 
+	// return new repo result from scanned entity
 	entityWrapper := types.RepoResultEntity{Attributes: entity}
 	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
 
