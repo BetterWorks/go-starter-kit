@@ -9,14 +9,14 @@ import (
 
 // EpisodeRequestData defines an Episode domain model for data attributes request binding
 type EpisodeRequestData struct {
-	Deleted     bool      `json:"deleted"`
-	Description *string   `json:"description"`
-	Director    *string   `json:"director"`
-	Enabled     bool      `json:"enabled"`
-	SeasonID    uuid.UUID `json:"season_id"`
-	Status      *uint32   `json:"status"`
-	Title       string    `json:"title"`
-	Year        *uint32   `json:"year"`
+	Deleted     bool      `json:"deleted" validate:"omitempty,boolean"`
+	Description *string   `json:"description" validate:"omitempty,min=3,max=999"`
+	Director    *string   `json:"director" validate:"omitempty,min=2,max=255"`
+	Enabled     bool      `json:"enabled" validate:"omitempty,boolean"`
+	SeasonID    uuid.UUID `json:"season_id" validate:"required,uuid4"`
+	Status      *uint32   `json:"status" validate:"omitempty,numeric"`
+	Title       string    `json:"title" validate:"required,min=2,max=255"`
+	Year        *uint32   `json:"year" validate:"omitempty,numeric"`
 }
 
 // EpisodeEntity defines an Episode database entity
