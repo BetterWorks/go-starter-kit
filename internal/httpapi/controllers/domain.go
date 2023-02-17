@@ -37,8 +37,14 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 
 		resource := f()
 		if err := ctx.BodyParser(resource); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Msg("error parsing request body")
 			return err
+		}
+
+		if err := validateBody(resource, log); err != nil {
+			ctx.Status(http.StatusBadRequest)
+			ctx.JSON(err)
+			return nil
 		}
 
 		model := resource.Data.Properties
@@ -138,12 +144,16 @@ func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 			return err
 		}
 
-		// TODO: validate body
-
 		resource := f()
 		if err := ctx.BodyParser(resource); err != nil {
 			log.Error().Err(err).Msg("")
 			return err
+		}
+
+		if err := validateBody(resource, log); err != nil {
+			ctx.Status(http.StatusBadRequest)
+			ctx.JSON(err)
+			return nil
 		}
 
 		model := resource.Data.Properties // TODO: problem here with ID
