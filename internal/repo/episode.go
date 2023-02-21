@@ -186,7 +186,7 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 		&entity.Title,
 		&entity.Year,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -218,7 +218,7 @@ func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	// create new entity for db row scan and execute query
 	entity := types.EpisodeEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return err
 	}
 
@@ -273,7 +273,7 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 		&entity.Title,
 		&entity.Year,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -328,7 +328,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 	// execute query, returning rows
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	defer rows.Close()
@@ -357,7 +357,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 			&entity.Title,
 			&entity.Year,
 		); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
@@ -366,7 +366,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -375,7 +375,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 	var total int
 	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
 	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -488,7 +488,7 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 		&entity.Title,
 		&entity.Year,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 

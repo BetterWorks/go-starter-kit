@@ -29,7 +29,7 @@ func NewController(c *Config) *Controller {
 }
 
 // Create
-func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
+func (c *Controller) Create(f func() *types.JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -37,26 +37,28 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 
 		resource := f()
 		if err := ctx.BodyParser(resource); err != nil {
-			log.Error().Err(err).Msg("error parsing request body")
-			return err
+			message := "error parsing request body"
+			log.Error().Err(err).Msg(message)
+			return fiber.NewError(http.StatusBadRequest, message)
 		}
 
+		// validation errors bypass default error handler
 		if err := validateBody(resource, log); err != nil {
+			log.Error().Msg("validation error")
 			ctx.Status(http.StatusBadRequest)
-			ctx.JSON(err)
+			ctx.JSON(err.Errors)
 			return nil
 		}
 
 		model := resource.Data.Properties
 		result, err := c.service.Create(ctx.Context(), model)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		ctx.Status(http.StatusCreated)
-		ctx.JSON(result)
-		return nil
+		return ctx.JSON(result)
 	}
 }
 
@@ -69,12 +71,12 @@ func (c *Controller) Delete() fiber.Handler {
 		id := ctx.Params("id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		if err := c.service.Delete(ctx.Context(), uuid); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 		ctx.Status(http.StatusNoContent)
@@ -92,19 +94,18 @@ func (c *Controller) Detail() fiber.Handler {
 		id := ctx.Params("id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		result, err := c.service.Detail(ctx.Context(), uuid)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		ctx.Status(http.StatusOK)
-		ctx.JSON(result)
-		return nil
+		return ctx.JSON(result)
 	}
 }
 
@@ -120,18 +121,17 @@ func (c *Controller) List() fiber.Handler {
 
 		result, err := c.service.List(ctx.Context(), *query)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		ctx.Status(http.StatusOK)
-		ctx.JSON(result)
-		return nil
+		return ctx.JSON(result)
 	}
 }
 
 // Update
-func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
+func (c *Controller) Update(f func() *types.JSONRequestBody) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
 		log := c.logger.Log.With().Str("req_id", requestID).Logger()
@@ -140,13 +140,13 @@ func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 		idString := ctx.Params("id")
 		id, err := uuid.Parse(idString)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		resource := f()
 		if err := ctx.BodyParser(resource); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
@@ -159,12 +159,11 @@ func (c *Controller) Update(f func() *JSONRequestBody) fiber.Handler {
 		model := resource.Data.Properties // TODO: problem here with ID
 		result, err := c.service.Update(ctx.Context(), model, id)
 		if err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return err
 		}
 
 		ctx.Status(http.StatusOK)
-		ctx.JSON(result)
-		return nil
+		return ctx.JSON(result)
 	}
 }
