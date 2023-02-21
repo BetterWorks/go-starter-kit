@@ -160,7 +160,7 @@ func (r *seasonRepository) Create(ctx context.Context, data any) (*types.RepoRes
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -192,7 +192,7 @@ func (r *seasonRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	// create new entity for db row scan and execute query
 	entity := types.SeasonEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return err
 	}
 
@@ -242,7 +242,7 @@ func (r *seasonRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Rep
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -294,7 +294,7 @@ func (r *seasonRepository) List(ctx context.Context, q types.QueryData) (*types.
 	// execute query, returning rows
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	defer rows.Close()
@@ -320,7 +320,7 @@ func (r *seasonRepository) List(ctx context.Context, q types.QueryData) (*types.
 			&entity.Status,
 			&entity.Title,
 		); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
@@ -329,7 +329,7 @@ func (r *seasonRepository) List(ctx context.Context, q types.QueryData) (*types.
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -338,7 +338,7 @@ func (r *seasonRepository) List(ctx context.Context, q types.QueryData) (*types.
 	var total int
 	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
 	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
@@ -434,7 +434,7 @@ func (r *seasonRepository) Update(ctx context.Context, data any, id uuid.UUID) (
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 

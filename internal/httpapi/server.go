@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-
 	"github.com/jasonsites/gosk-api/internal/application"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
@@ -36,7 +35,10 @@ func NewServer(c *Config) (*Server, error) {
 		return nil, err
 	}
 
-	app := fiber.New(fiber.Config{AppName: "domain"})
+	app := fiber.New(fiber.Config{
+		AppName:      c.Namespace,
+		ErrorHandler: errorHandler,
+	})
 
 	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
 	logger := &types.Logger{

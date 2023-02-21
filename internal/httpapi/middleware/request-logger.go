@@ -14,7 +14,14 @@ import (
 // RequestLoggerContextKey
 var RequestLoggerContextKey string
 
-// RequestLogger
+// RequestLoggerConfig defines necessary components for the request logger middleware
+type RequestLoggerConfig struct {
+	ContextKey string
+	Logger     *types.Logger
+	Next       func(c *fiber.Ctx) bool
+}
+
+// RequestLogger returns the request logger middleware
 func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 	conf := setRequestLoggerConfig(config)
 	logger := conf.Logger
@@ -24,45 +31,15 @@ func RequestLogger(config *RequestLoggerConfig) fiber.Handler {
 			return ctx.Next()
 		}
 
-		if logger.Enabled {
-			requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-			log := logger.Log.With().Str("req_id", requestID).Logger()
-
-			var body []byte
-			if len(ctx.Body()) > 0 {
-				b := new(bytes.Buffer)
-				if err := json.Compact(b, ctx.Body()); err != nil {
-					// log.Error().Err(err).Msg("")
-					return err
-				}
-				body = b.Bytes()
-			}
-
-			headers, err := json.Marshal(ctx.GetReqHeaders())
-			if err != nil {
-				// log.Error().Err(err).Msg("")
-				return err
-			}
-
-			data := newRequestLogData(ctx, body, headers)
-			ctx.Locals("RequestLogData", data)
-
-			event := newRequestLogEvent(data, logger.Level, log)
-			event.Send()
+		if logError := logRequest(ctx, logger); logError != nil {
+			return logError
 		}
 
 		return ctx.Next()
 	}
 }
 
-// RequestLoggerConfig
-type RequestLoggerConfig struct {
-	ContextKey string
-	Logger     *types.Logger
-	Next       func(c *fiber.Ctx) bool
-}
-
-// setRequestLoggerConfig
+// setRequestLoggerConfig returns a valid request logger configuration and sets the context key for external use
 func setRequestLoggerConfig(c *RequestLoggerConfig) *RequestLoggerConfig {
 	if c.Logger == nil {
 		log.Panicf("request logger middleware missing logger configuration")
@@ -73,13 +50,45 @@ func setRequestLoggerConfig(c *RequestLoggerConfig) *RequestLoggerConfig {
 	if c.ContextKey == "" {
 		conf.ContextKey = "RequestLogData"
 	}
-	// set exposed context key for use in other handlers
+	// set context key for use in other handlers
 	RequestLoggerContextKey = conf.ContextKey
 
 	return conf
 }
 
-// RequestLogData
+// logRequest logs the captured request data
+func logRequest(ctx *fiber.Ctx, logger *types.Logger) error {
+	if logger.Enabled {
+		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
+		log := logger.Log.With().Str("req_id", requestID).Logger()
+
+		var body []byte
+		if len(ctx.Body()) > 0 {
+			b := new(bytes.Buffer)
+			if err := json.Compact(b, ctx.Body()); err != nil {
+				log.Error().Err(err).Send()
+				return err
+			}
+			body = b.Bytes()
+		}
+
+		headers, err := json.Marshal(ctx.GetReqHeaders())
+		if err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+
+		data := newRequestLogData(ctx, body, headers)
+		ctx.Locals("RequestLogData", data)
+
+		event := newRequestLogEvent(data, logger.Level, log)
+		event.Send()
+	}
+
+	return nil
+}
+
+// RequestLogData defines the data captured for request logging
 type RequestLogData struct {
 	Body     []byte
 	ClientIP string
@@ -89,7 +98,7 @@ type RequestLogData struct {
 	Start    time.Time
 }
 
-// newRequestLogData
+// newRequestLogData captures relevant data from the request
 func newRequestLogData(ctx *fiber.Ctx, body, headers []byte) *RequestLogData {
 	return &RequestLogData{
 		Body:     body,
@@ -101,7 +110,7 @@ func newRequestLogData(ctx *fiber.Ctx, body, headers []byte) *RequestLogData {
 	}
 }
 
-// newRequestLogEvent
+// newRequestLogEvent composes a new sendable request log event
 func newRequestLogEvent(data *RequestLogData, level string, log zerolog.Logger) *zerolog.Event {
 	event := log.Info().
 		Str("ip", data.ClientIP).

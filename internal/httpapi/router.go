@@ -1,6 +1,9 @@
 package httpapi
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -32,6 +35,34 @@ func (s *Server) configureMiddleware() {
 	app.Use(helmet.New())
 	app.Use(mw.Correlation(&mw.CorrelationConfig{Next: skipHealth}))
 	app.Use(mw.RequestLogger(&mw.RequestLoggerConfig{Logger: s.Logger, Next: skipHealth}))
+}
+
+// errorHandler provides custom error handling (end of chain middleware) for all routes
+func errorHandler(ctx *fiber.Ctx, err error) error {
+	// default error status code (500)
+	code := http.StatusInternalServerError
+
+	// retrieve custom status code (and override default) if error is of type *fiber.Error
+	var e *fiber.Error
+	if errors.As(err, &e) {
+		code = e.Code
+	}
+
+	response := types.CustomError{
+		Errors: []types.ErrorData{{
+			Status: code,
+			Source: types.ErrorSource{Pointer: ""},
+			Title:  "TodoErrorType",
+			Detail: e.Message,
+		}},
+	}
+
+	ctx.Status(code)
+	if err := ctx.JSON(response); err != nil {
+		return ctx.Status(http.StatusInternalServerError).SendString("Internal Server Error")
+	}
+
+	return nil
 }
 
 // registerControllers

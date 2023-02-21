@@ -45,14 +45,14 @@ func (s *episodeService) Create(ctx context.Context, data any) (*types.JSONRespo
 
 	result, err := s.repo.Create(ctx, data.(*types.EpisodeRequestData))
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -66,7 +66,7 @@ func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) error {
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return err
 	}
 
@@ -80,14 +80,14 @@ func (s *episodeService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONR
 
 	result, err := s.repo.Detail(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)
@@ -102,14 +102,14 @@ func (s *episodeService) List(ctx context.Context, q types.QueryData) (*types.JS
 
 	result, err := s.repo.List(ctx, q)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, false)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseMult)
@@ -124,14 +124,14 @@ func (s *episodeService) Update(ctx context.Context, data any, id uuid.UUID) (*t
 
 	result, err := s.repo.Update(ctx, data.(*types.EpisodeRequestData), id)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 
 	model := &types.Episode{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 		return nil, err
 	}
 	res := sr.(*types.JSONResponseSolo)

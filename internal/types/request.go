@@ -3,6 +3,7 @@ package types
 import "github.com/rs/zerolog"
 
 // Context ----------------------------------------------------------------------------------------
+
 // CorrelationContextKey
 const CorrelationContextKey string = "Trace"
 
@@ -19,7 +20,22 @@ type Trace struct {
 	RequestID string // TODO: consider uuid.UUID
 }
 
+// JSON Request -----------------------------------------------------------------------------------
+
+// JSONRequestBody
+type JSONRequestBody struct {
+	Data *RequestResource `json:"data" validate:"required"`
+}
+
+// RequestResource
+type RequestResource struct {
+	Type       string `json:"type" validate:"required"`
+	ID         string `json:"id" validate:"omitempty,uuid4"`
+	Properties any    `json:"properties" validate:"required"`
+}
+
 // Query ------------------------------------------------------------------------------------------
+
 // QueryData composes all query parameters into a single struct for use across the app
 type QueryData struct {
 	Filters QueryFilters `query:"f"`

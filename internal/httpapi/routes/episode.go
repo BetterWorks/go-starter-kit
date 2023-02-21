@@ -14,9 +14,9 @@ func EpisodeRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 
 	// createResource provides a JSONRequestBody with data binding for the Episode model
 	// for use with Create/Update Controller methods
-	createResource := func() *ctrl.JSONRequestBody {
-		return &ctrl.JSONRequestBody{
-			Data: &ctrl.RequestResource{
+	createResource := func() *types.JSONRequestBody {
+		return &types.JSONRequestBody{
+			Data: &types.RequestResource{
 				Properties: &types.EpisodeRequestData{},
 			},
 		}

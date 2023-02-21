@@ -7,16 +7,17 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 	"github.com/rs/zerolog"
 )
 
 // validateBody validates tagged fields in json request body
-func validateBody(body *JSONRequestBody, log zerolog.Logger) *ErrorResponse {
-	var errors []ValidationError
+func validateBody(body *types.JSONRequestBody, log zerolog.Logger) *types.CustomError {
+	var errors []types.ErrorData
 
 	if err := validation.Validate.Struct(body); err != nil {
-		log.Error().Err(err).Msg("")
+		log.Error().Err(err).Send()
 
 		for _, err := range err.(validator.ValidationErrors) {
 
@@ -39,17 +40,17 @@ func validateBody(body *JSONRequestBody, log zerolog.Logger) *ErrorResponse {
 			// fmt.Printf("Value: %+v\n", err.Value())
 			// fmt.Printf("Param: %s\n\n", err.Param())
 
-			verr := ValidationError{
+			verr := types.ErrorData{
 				Status: http.StatusBadRequest,
-				Source: ValidationErrorSource{Pointer: pointer},
-				Title:  ValidationErrorType,
+				Source: types.ErrorSource{Pointer: pointer},
+				Title:  types.ValidationErrorType,
 				Detail: formatErrorDetail(field, param, tag),
 			}
 
 			errors = append(errors, verr)
 		}
 
-		return &ErrorResponse{Errors: errors}
+		return &types.CustomError{Errors: errors}
 	}
 
 	return nil
