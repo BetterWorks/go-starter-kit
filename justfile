@@ -38,10 +38,12 @@ migrate-create name:
 # Run =============================================================================================
 # run http server in dev mode
 serve-dev:
+  just migrate
   go run ./cmd/httpserver/main.go
 
 # run http server in dev mode with air monitor
 serve-air:
+  just migrate
   air
 
 # Test ============================================================================================
@@ -53,5 +55,5 @@ test:
 # run tests with coverage report
 coverage:
   just migrate-up testdb
-  gotestsum --jsonfile test-output.log --junitfile junit.xml -- -coverpkg=$(go list ./... | grep -v proto | grep -v testutils | tr '\n' ',') -covermode=count -coverprofile=profile.cov ./...
+  gotestsum --jsonfile test-output.log --junitfile junit.xml -- -coverpkg=$(go list ./... | grep -v proto | grep -v test | tr '\n' ',') -covermode=count -coverprofile=profile.cov ./...
   go tool cover -o coverage.html -html=profile.cov

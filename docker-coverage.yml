@@ -6,13 +6,13 @@ networks:
     driver: bridge
 
 services:
-  api:
+  coverage:
     build:
       context: .
-      dockerfile: ./testutils/Dockerfile
-    command: bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done; just server'
+      dockerfile: ./test/Dockerfile
+    command: bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done; just coverage'
     depends_on:
-      - db
+      - domain_db
       - redis
     environment:
       APP_ENV: dev
@@ -56,7 +56,7 @@ services:
     ports:
       - 45432:5432
     volumes:
-      # - ./database/scripts:/docker-entrypoint-initdb.d/
+      - ./database/scripts:/docker-entrypoint-initdb.d/
       - postgres-data:/var/lib/postgresql/data
 
   redis:

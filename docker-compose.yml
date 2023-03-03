@@ -9,7 +9,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./testutils/Dockerfile
+      dockerfile: ./test/Dockerfile
     command: bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done; just serve-air'
     depends_on:
       - domain_db
