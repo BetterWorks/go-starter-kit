@@ -17,8 +17,7 @@ import (
 )
 
 type controllerRegistry struct {
-	EpisodeController *controllers.Controller
-	SeasonController  *controllers.Controller
+	ResourceController *controllers.Controller
 }
 
 // configureMiddleware
@@ -39,27 +38,46 @@ func (s *Server) configureMiddleware() {
 
 // errorHandler provides custom error handling (end of chain middleware) for all routes
 func errorHandler(ctx *fiber.Ctx, err error) error {
-	// default error status code (500)
-	code := http.StatusInternalServerError
-
-	// retrieve custom status code (and override default) if error is of type *fiber.Error
-	var e *fiber.Error
-	if errors.As(err, &e) {
-		code = e.Code
+	composeErrorResponse := func(code int, title, detail string) types.ErrorResponse {
+		return types.ErrorResponse{
+			Errors: []types.ErrorData{{
+				Status: code,
+				Title:  title,
+				Detail: detail,
+			}},
+		}
 	}
 
-	response := types.CustomError{
-		Errors: []types.ErrorData{{
-			Status: code,
-			Source: types.ErrorSource{Pointer: ""},
-			Title:  "TodoErrorType",
-			Detail: e.Message,
-		}},
+	var (
+		code     = http.StatusInternalServerError // default error status code (500)
+		detail   = "internal server error"
+		title    string
+		fiberErr *fiber.Error
+		response types.ErrorResponse
+	)
+
+	cerr, ok := err.(*types.CustomError)
+	// custom (controlled) errors
+	if ok {
+		code = types.HTTPStatusCodeMap[cerr.Type]
+		detail = cerr.Message
+		title = cerr.Type
+
+		// fiber errors
+	} else if errors.As(err, &fiberErr) {
+		code = fiberErr.Code
+		detail = fiberErr.Message
+
+		// unknown errors
+	} else {
+		title = types.ErrorType.InternalServer
 	}
+
+	response = composeErrorResponse(code, title, detail)
 
 	ctx.Status(code)
 	if err := ctx.JSON(response); err != nil {
-		return ctx.Status(http.StatusInternalServerError).SendString("Internal Server Error")
+		return ctx.SendString(detail)
 	}
 
 	return nil
@@ -68,12 +86,8 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 // registerControllers
 func registerControllers(logger *types.Logger, services *application.Services) *controllerRegistry {
 	return &controllerRegistry{
-		EpisodeController: controllers.NewController(&controllers.Config{
-			Service: services.EpisodeService,
-			Logger:  logger,
-		}),
-		SeasonController: controllers.NewController(&controllers.Config{
-			Service: services.SeasonService,
+		ResourceController: controllers.NewController(&controllers.Config{
+			Service: services.ResourceService,
 			Logger:  logger,
 		}),
 	}
@@ -87,7 +101,5 @@ func (s *Server) registerRoutes() {
 
 	routes.BaseRouter(app, nil, ns)
 	routes.HealthRouter(app, nil, ns)
-
-	routes.EpisodeRouter(app, c.EpisodeController, ns)
-	routes.SeasonRouter(app, c.SeasonController, ns)
+	routes.ResourceRouter(app, c.ResourceController, ns)
 }
