@@ -11,77 +11,71 @@ import (
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// episodeEntityDefinition
-type episodeEntityDefinition struct {
-	Field episodeEntityFields
+// resourceEntityDefinition
+type resourceEntityDefinition struct {
+	Field resourceEntityFields
 	Name  string
 }
 
-// episodeEntityFields
-type episodeEntityFields struct {
+// resourceEntityFields
+type resourceEntityFields struct {
 	CreatedBy   string
 	CreatedOn   string
 	Deleted     string
 	Description string
-	Director    string
 	Enabled     string
 	ID          string
 	ModifiedBy  string
 	ModifiedOn  string
-	SeasonID    string
 	Status      string
 	Title       string
-	Year        string
 }
 
-// episodeEntity
-var episodeEntity = episodeEntityDefinition{
-	Name: "episode",
-	Field: episodeEntityFields{
+// resourceEntity
+var resourceEntity = resourceEntityDefinition{
+	Name: "resource_entity",
+	Field: resourceEntityFields{
 		CreatedBy:   "created_by",
 		CreatedOn:   "created_on",
 		Deleted:     "deleted",
 		Description: "description",
-		Director:    "director",
 		Enabled:     "enabled",
 		ID:          "id",
 		ModifiedBy:  "modified_by",
 		ModifiedOn:  "modified_on",
-		SeasonID:    "season_id",
 		Status:      "status",
 		Title:       "title",
-		Year:        "year",
 	},
 }
 
-// EpisodeRepoConfig defines the input to NewEpisodeRepository
-type EpisodeRepoConfig struct {
+// ResourceRepoConfig defines the input to NewResourceRepository
+type ResourceRepoConfig struct {
 	DBClient *pgxpool.Pool `validate:"required"`
 	Logger   *types.Logger `validate:"required"`
 }
 
-// episodeRepository
-type episodeRepository struct {
-	Entity episodeEntityDefinition
+// resourceRepository
+type resourceRepository struct {
+	Entity resourceEntityDefinition
 	db     *pgxpool.Pool
 	logger *types.Logger
 }
 
-// NewEpisodeRepository
-func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
+// NewResourceRepository
+func NewResourceRepository(c *ResourceRepoConfig) (*resourceRepository, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "repo,episode").Logger()
+	log := c.Logger.Log.With().Str("tags", "repo,resource").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
 	}
 
-	repo := &episodeRepository{
-		Entity: episodeEntity,
+	repo := &resourceRepository{
+		Entity: resourceEntity,
 		db:     c.DBClient,
 		logger: logger,
 	}
@@ -90,7 +84,7 @@ func NewEpisodeRepository(c *EpisodeRepoConfig) (*episodeRepository, error) {
 }
 
 // Create
-func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
+func (r *resourceRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -106,12 +100,9 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 			field.CreatedBy,
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		returnFields := buildReturnFields(
@@ -119,72 +110,55 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 			field.CreatedOn,
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
 			field.ID,
 			field.ModifiedBy,
 			field.ModifiedOn,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		return fmt.Sprintf(statement, name, insertFields, values, returnFields)
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.EpisodeRequestData)
+	requestData := data.(*types.ResourceRequestData)
 
 	var (
 		createdBy   = 9999 // TODO: temp mock for user id
 		description *string
-		director    *string
 		status      *uint32
-		year        *uint32
 	)
 
 	if requestData.Description != nil {
 		description = requestData.Description
 	}
-	if requestData.Director != nil {
-		director = requestData.Director
-	}
 	if requestData.Status != nil {
 		status = requestData.Status
 	}
-	if requestData.Year != nil {
-		year = requestData.Year
-	}
 
 	// create new entity for db row scan and execute query
-	entity := types.EpisodeEntity{}
+	entity := types.ResourceEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
 		createdBy,
 		requestData.Deleted,
 		description,
-		director,
 		requestData.Enabled,
-		requestData.SeasonID,
 		status,
 		requestData.Title,
-		year,
 	).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
-		&entity.Director,
 		&entity.Enabled,
 		&entity.ID,
 		&entity.ModifiedBy,
 		&entity.ModifiedOn,
-		&entity.SeasonID,
 		&entity.Status,
 		&entity.Title,
-		&entity.Year,
 	); err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
@@ -198,7 +172,7 @@ func (r *episodeRepository) Create(ctx context.Context, data any) (*types.RepoRe
 }
 
 // Delete
-func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *resourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -216,7 +190,7 @@ func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := types.EpisodeEntity{}
+	entity := types.ResourceEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
 		log.Error().Err(err).Send()
 		return err
@@ -226,7 +200,7 @@ func (r *episodeRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
+func (r *resourceRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -237,43 +211,41 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 			field     = r.Entity.Field
 			name      = r.Entity.Name
 		)
+
 		returnFields := buildReturnFields(
 			field.CreatedBy,
 			field.CreatedOn,
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
 			field.ID,
 			field.ModifiedBy,
 			field.ModifiedOn,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		return fmt.Sprintf(statement, returnFields, name, id)
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := types.EpisodeEntity{}
-	if err := r.db.QueryRow(ctx, query).Scan(
+	entity := types.ResourceEntity{}
+	if scanErr := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
-		&entity.Director,
 		&entity.Enabled,
 		&entity.ID,
 		&entity.ModifiedBy,
 		&entity.ModifiedOn,
-		&entity.SeasonID,
 		&entity.Status,
 		&entity.Title,
-		&entity.Year,
-	); err != nil {
-		log.Error().Err(err).Send()
+	); scanErr != nil {
+		log.Error().Err(scanErr).Send()
+		err := types.NewNotFoundError(
+			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
+		)
 		return nil, err
 	}
 
@@ -285,7 +257,7 @@ func (r *episodeRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 }
 
 // List
-func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types.RepoResult, error) {
+func (r *resourceRepository) List(ctx context.Context, q types.QueryData) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -302,8 +274,8 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 			name       = r.Entity.Name
 			orderField = *q.Sorting.Prop
 			orderDir   = *q.Sorting.Order
-			limit      = fmt.Sprint(*q.Paging.Limit)
-			offset     = fmt.Sprint(*q.Paging.Offset)
+			limit      = fmt.Sprint(limit)
+			offset     = fmt.Sprint(offset)
 		)
 
 		returnFields := buildReturnFields(
@@ -311,15 +283,12 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 			field.CreatedOn,
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
 			field.ID,
 			field.ModifiedBy,
 			field.ModifiedOn,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		return fmt.Sprintf(statement, returnFields, name, orderField, orderDir, limit, offset)
@@ -340,22 +309,19 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 
 	// scan row data into new entities, appending to repo result
 	for rows.Next() {
-		entity := types.EpisodeEntity{}
+		entity := types.ResourceEntity{}
 
 		if err := rows.Scan(
 			&entity.CreatedBy,
 			&entity.CreatedOn,
 			&entity.Deleted,
 			&entity.Description,
-			&entity.Director,
 			&entity.Enabled,
 			&entity.ID,
 			&entity.ModifiedBy,
 			&entity.ModifiedOn,
-			&entity.SeasonID,
 			&entity.Status,
 			&entity.Title,
-			&entity.Year,
 		); err != nil {
 			log.Error().Err(err).Send()
 			return nil, err
@@ -392,7 +358,7 @@ func (r *episodeRepository) List(ctx context.Context, q types.QueryData) (*types
 }
 
 // Update
-func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
+func (r *resourceRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -400,21 +366,18 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 	query := func() string {
 		var (
 			statement = "UPDATE %s SET %s WHERE id = ('%s'::uuid) RETURNING %s"
-			field     = r.Entity.Field
 			name      = r.Entity.Name
+			field     = r.Entity.Field
 		)
 
 		values := buildUpdateValues(
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
 			field.ModifiedBy,
 			field.ModifiedOn,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		returnFields := buildReturnFields(
@@ -422,71 +385,57 @@ func (r *episodeRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 			field.CreatedOn,
 			field.Deleted,
 			field.Description,
-			field.Director,
 			field.Enabled,
 			field.ID,
 			field.ModifiedBy,
 			field.ModifiedOn,
-			field.SeasonID,
 			field.Status,
 			field.Title,
-			field.Year,
 		)
 
 		return fmt.Sprintf(statement, name, values, id, returnFields)
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.EpisodeRequestData)
+	requestData := data.(*types.ResourceRequestData)
 
 	var (
 		description *string
-		director    *string
 		modifiedBy  = 9999 // TODO: temp mock for user id
 		modifiedOn  = time.Now()
 		status      *uint32
-		year        *uint32
 	)
 
 	if requestData.Description != nil {
 		description = requestData.Description
 	}
-	if requestData.Director != nil {
-		director = requestData.Director
-	}
 	if requestData.Status != nil {
 		status = requestData.Status
 	}
-	if requestData.Year != nil {
-		year = requestData.Year
-	}
 
 	// create new entity for db row scan and execute query
-	entity := types.EpisodeEntity{}
+	entity := types.ResourceEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
 		requestData.Deleted,
 		description,
-		director,
 		requestData.Enabled,
 		modifiedBy,
 		modifiedOn,
-		requestData.SeasonID,
 		status,
 		requestData.Title,
-		year,
 	).Scan(
 		&entity.CreatedBy,
+		&entity.CreatedOn,
 		&entity.Deleted,
 		&entity.Description,
-		&entity.Director,
 		&entity.Enabled,
 		&entity.ID,
-		&entity.SeasonID,
+		&entity.ModifiedBy,
+		&entity.ModifiedOn,
 		&entity.Status,
 		&entity.Title,
-		&entity.Year,
 	); err != nil {
 		log.Error().Err(err).Send()
 		return nil, err

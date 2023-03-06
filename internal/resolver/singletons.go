@@ -19,35 +19,21 @@ import (
 // Application provides a singleton application.Application instance
 func (r *Resolver) Application() (*application.Application, error) {
 	if r.application == nil {
-		svcEpisode, err := application.NewEpisodeService(&application.EpisodeServiceConfig{
+		svcResource, err := application.NewResourceService(&application.ResourceServiceConfig{
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.SvcExample.Enabled,
 				Level:   r.config.Logger.SvcExample.Level,
 				Log:     r.log,
 			},
-			Repo: r.repoEpisode,
+			Repo: r.repoResource,
 		})
 		if err != nil {
-			log.Printf("error resolving application episode service: %v", err)
-			return nil, err
-		}
-
-		svcSeason, err := application.NewSeasonService(&application.SeasonServiceConfig{
-			Logger: &types.Logger{
-				Enabled: r.config.Logger.SvcExample.Enabled,
-				Level:   r.config.Logger.SvcExample.Level,
-				Log:     r.log,
-			},
-			Repo: r.repoSeason,
-		})
-		if err != nil {
-			log.Printf("error resolving application season service: %v", err)
+			log.Printf("error resolving application resource service: %v", err)
 			return nil, err
 		}
 
 		services := &application.Services{
-			EpisodeService: svcEpisode,
-			SeasonService:  svcSeason,
+			ResourceService: svcResource,
 		}
 
 		r.application = application.NewApplication(services)
@@ -152,10 +138,10 @@ func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 	return r.postgreSQLClient, nil
 }
 
-// RepositoryEpisode provides a singleton repo.episodeRepository instance
-func (r *Resolver) RepositoryEpisode() (types.Repository, error) {
-	if r.repoEpisode == nil {
-		repo, err := repo.NewEpisodeRepository(&repo.EpisodeRepoConfig{
+// RepositoryResource provides a singleton repo.resourceRepository instance
+func (r *Resolver) RepositoryResource() (types.Repository, error) {
+	if r.repoResource == nil {
+		repo, err := repo.NewResourceRepository(&repo.ResourceRepoConfig{
 			DBClient: r.postgreSQLClient,
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
@@ -164,34 +150,12 @@ func (r *Resolver) RepositoryEpisode() (types.Repository, error) {
 			},
 		})
 		if err != nil {
-			log.Printf("error resolving episode repository: %v", err)
+			log.Printf("error resolving resource repository: %v", err)
 			return nil, err
 		}
 
-		r.repoEpisode = repo
+		r.repoResource = repo
 	}
 
-	return r.repoEpisode, nil
-}
-
-// RepositorySeason provides a singleton repo.seasonRepository instance
-func (r *Resolver) RepositorySeason() (types.Repository, error) {
-	if r.repoSeason == nil {
-		repo, err := repo.NewSeasonRepository(&repo.SeasonRepoConfig{
-			DBClient: r.postgreSQLClient,
-			Logger: &types.Logger{
-				Enabled: r.config.Logger.Repo.Enabled,
-				Level:   r.config.Logger.Repo.Level,
-				Log:     r.log,
-			},
-		})
-		if err != nil {
-			log.Printf("error resolving season repository: %v", err)
-			return nil, err
-		}
-
-		r.repoSeason = repo
-	}
-
-	return r.repoSeason, nil
+	return r.repoResource, nil
 }

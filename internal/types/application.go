@@ -12,16 +12,14 @@ type DomainModel interface {
 	ResponseSerializer
 }
 
-// domainRegistry defines a registry for all domain types to be used across the application
+// DomainRegistry defines a registry for all domain types to be used across the application
 type DomainRegistry struct {
-	Episode string
-	Season  string
+	Resource string
 }
 
 // DomainType exposes constants for all domain types
 var DomainType = DomainRegistry{
-	Episode: "episode",
-	Season:  "season",
+	Resource: "resource",
 }
 
 // TODO
