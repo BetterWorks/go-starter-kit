@@ -13,7 +13,7 @@ import (
 )
 
 // validateBody validates tagged fields in json request body
-func validateBody(body *types.JSONRequestBody, log zerolog.Logger) *types.CustomError {
+func validateBody(body *types.JSONRequestBody, log zerolog.Logger) *types.ErrorResponse {
 	var errors []types.ErrorData
 
 	if err := validation.Validate.Struct(body); err != nil {
@@ -42,15 +42,15 @@ func validateBody(body *types.JSONRequestBody, log zerolog.Logger) *types.Custom
 
 			verr := types.ErrorData{
 				Status: http.StatusBadRequest,
-				Source: types.ErrorSource{Pointer: pointer},
-				Title:  types.ValidationErrorType,
+				Source: &types.ErrorSource{Pointer: pointer},
+				Title:  types.ErrorType.Validation,
 				Detail: formatErrorDetail(field, param, tag),
 			}
 
 			errors = append(errors, verr)
 		}
 
-		return &types.CustomError{Errors: errors}
+		return &types.ErrorResponse{Errors: errors}
 	}
 
 	return nil

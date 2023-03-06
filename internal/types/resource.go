@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// SeasonRequestData defines a Season domain model for data attributes request binding
-type SeasonRequestData struct {
+// ResourceRequestData defines a Resource domain model for data attributes request binding
+type ResourceRequestData struct {
 	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
 	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
@@ -16,8 +16,8 @@ type SeasonRequestData struct {
 	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
 }
 
-// SeasonEntity defines a Season database entity
-type SeasonEntity struct {
+// ResourceEntity defines a Resource database entity
+type ResourceEntity struct {
 	CreatedBy   uint32
 	CreatedOn   time.Time
 	Deleted     bool
@@ -30,8 +30,8 @@ type SeasonEntity struct {
 	Title       string
 }
 
-// Season defines a Season domain model for application logic and response serialization
-type Season struct {
+// Resource defines a Resource domain model for application logic and response serialization
+type Resource struct {
 	ID          uuid.UUID  `json:"-"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
@@ -45,9 +45,9 @@ type Season struct {
 }
 
 // SerializeModel
-func (s *Season) SerializeModel(r *RepoResult, solo bool) (*Season, error) {
+func (s *Resource) SerializeModel(r *RepoResult, solo bool) (*Resource, error) {
 	if solo {
-		return r.Data[0].Attributes.(*Season), nil
+		return r.Data[0].Attributes.(*Resource), nil
 	}
 
 	// TODO: List case
@@ -56,10 +56,10 @@ func (s *Season) SerializeModel(r *RepoResult, solo bool) (*Season, error) {
 }
 
 // SerializeResponse
-func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
+func (s *Resource) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
 	// single resource response
 	if solo {
-		resource := mapSeasonEntityToResource(r.Data[0])
+		resource := mapResourceEntityToResource(r.Data[0])
 		result := &JSONResponseSolo{Data: resource}
 
 		return result, nil
@@ -77,7 +77,7 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 	data := make([]ResponseResource, 0)
 	// TODO: go routine
 	for _, record := range r.Data {
-		resource := mapSeasonEntityToResource(record)
+		resource := mapResourceEntityToResource(record)
 		data = append(data, resource)
 	}
 
@@ -89,9 +89,9 @@ func (s *Season) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, erro
 	return result, nil
 }
 
-// mapSeasonEntityToResource maps a season entity repo record to a season response resource
-func mapSeasonEntityToResource(record RepoResultEntity) ResponseResource {
-	model := record.Attributes.(SeasonEntity)
+// mapResourceEntityToResource maps a resource entity repo record to a resource response resource
+func mapResourceEntityToResource(record RepoResultEntity) ResponseResource {
+	model := record.Attributes.(ResourceEntity)
 
 	var (
 		description *string
@@ -115,7 +115,7 @@ func mapSeasonEntityToResource(record RepoResultEntity) ResponseResource {
 		status = &s
 	}
 
-	properties := &Season{
+	properties := &Resource{
 		CreatedBy:   model.CreatedBy,
 		CreatedOn:   model.CreatedOn,
 		Description: description,
@@ -127,7 +127,7 @@ func mapSeasonEntityToResource(record RepoResultEntity) ResponseResource {
 	}
 
 	return ResponseResource{
-		Type:       DomainType.Season,
+		Type:       DomainType.Resource,
 		ID:         model.ID,
 		Properties: properties,
 	}

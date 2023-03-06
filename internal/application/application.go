@@ -11,8 +11,7 @@ type Application struct {
 
 // Services
 type Services struct {
-	EpisodeService types.Service
-	SeasonService  types.Service
+	ResourceService types.Service
 }
 
 func NewApplication(s *Services) *Application {

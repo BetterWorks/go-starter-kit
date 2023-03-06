@@ -42,7 +42,7 @@ func (c *Controller) Create(f func() *types.JSONRequestBody) fiber.Handler {
 			return fiber.NewError(http.StatusBadRequest, message)
 		}
 
-		// validation errors bypass default error handler
+		// TODO: validation errors bypass default error handler
 		if err := validateBody(resource, log); err != nil {
 			log.Error().Msg("validation error")
 			ctx.Status(http.StatusBadRequest)

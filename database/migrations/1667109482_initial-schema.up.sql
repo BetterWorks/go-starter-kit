@@ -1,9 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Season
-DROP TABLE IF EXISTS season;
+-- Entity
+DROP TABLE IF EXISTS resource_entity;
 
-CREATE TABLE IF NOT EXISTS season (
+CREATE TABLE IF NOT EXISTS resource_entity (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title       varchar(255) NOT NULL,
   description text,
@@ -17,30 +17,4 @@ CREATE TABLE IF NOT EXISTS season (
   modified_by integer
 );
 
-CREATE INDEX season_status_idx ON season (status);
-
--- Episode
-DROP TABLE IF EXISTS episode;
-
-CREATE TABLE IF NOT EXISTS episode (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  season_id   uuid NOT NULL,
-  title       varchar(255) NOT NULL,
-  description text,
-  year        integer,
-  director    varchar(255),
-  deleted     boolean NOT NULL DEFAULT false,
-  enabled     boolean NOT NULL DEFAULT true,
-  status      integer,
-
-  created_on  timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-  created_by  integer NOT NULL,
-  modified_on timestamptz,
-  modified_by integer
-);
-
-CREATE INDEX episode_season_id_idx ON episode (season_id);
-CREATE INDEX episode_status_idx ON episode (status);
-
-ALTER TABLE episode
-  ADD CONSTRAINT fk_season_id FOREIGN KEY (season_id) REFERENCES season (id);
+CREATE INDEX resource_entity_status_idx ON resource_entity (status);
