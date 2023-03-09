@@ -22,7 +22,7 @@ services:
       LOGGER_HTTP_LEVEL: debug
       LOGGER_DOMAIN_ENABLED: true
       LOGGER_REPO_ENABLED: true
-      POSTGRES_DB: svcdb
+      POSTGRES_DB: testdb
       POSTGRES_HOST: domain_db
       POSTGRES_PASSWORD: postgres
       POSTGRES_PORT: 5432

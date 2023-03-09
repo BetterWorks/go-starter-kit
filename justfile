@@ -50,10 +50,13 @@ serve-air:
 # run tests
 test:
   just migrate-up testdb
-  gotestsum -- -v -race ./...
+  go test -v ./...
 
 # run tests with coverage report
 coverage:
   just migrate-up testdb
-  gotestsum --jsonfile test-output.log --junitfile junit.xml -- -coverpkg=$(go list ./... | grep -v proto | grep -v test | tr '\n' ',') -covermode=count -coverprofile=profile.cov ./...
-  go tool cover -o coverage.html -html=profile.cov
+  gotestsum --jsonfile ./coverage/coverage.log -- -covermode=count -coverprofile=./coverage/profile.cov ./...
+
+# html coverage report
+covreport:
+  go tool cover -html=./coverage/profile.cov
