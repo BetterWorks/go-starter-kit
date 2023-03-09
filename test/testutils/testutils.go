@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/internal/resolver"
 )
 
@@ -18,7 +19,7 @@ func Cleanup(r *resolver.Resolver) error {
 		return err
 	}
 
-	tables := []string{"episode", "season"}
+	tables := []string{"resource_entity"}
 
 	for _, t := range tables {
 		sql := fmt.Sprintf("DELETE from %s", t)
@@ -32,18 +33,23 @@ func Cleanup(r *resolver.Resolver) error {
 }
 
 // InitializeApp creates a new Resolver from the given config and returns a reference to the HTTP Server's App (Fiber) instance and the Resolver itself
-func InitializeApp(conf *resolver.Config) (*fiber.App, *resolver.Resolver, error) {
+func InitializeApp(conf *resolver.Config) (*fiber.App, *pgxpool.Pool, *resolver.Resolver, error) {
 	resolver := resolver.NewResolver(context.Background(), conf)
 	if err := resolver.Initialize(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	server, err := resolver.HTTPServer()
 	if err != nil {
-		return nil, resolver, err
+		return nil, nil, resolver, err
 	}
 
-	return server.App, resolver, nil
+	db, err := resolver.PostgreSQLClient()
+	if err != nil {
+		return server.App, nil, resolver, err
+	}
+
+	return server.App, db, resolver, nil
 }
 
 // SetRequestData creates a new HTTP Request instance from the give data

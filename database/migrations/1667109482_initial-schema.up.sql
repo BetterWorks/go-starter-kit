@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Entity
+-- Resource Entity
 DROP TABLE IF EXISTS resource_entity;
 
 CREATE TABLE IF NOT EXISTS resource_entity (
