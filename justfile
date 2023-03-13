@@ -6,7 +6,7 @@ project := 'domain'
 # Commands ========================================================================================
 # show this help
 help:
-	just --list
+  just --list
 
 # remove build related files
 clean:
@@ -55,7 +55,8 @@ test:
 # run tests with coverage report
 coverage:
   just migrate-up testdb
-  gotestsum --jsonfile ./coverage/coverage.log -- -covermode=count -coverprofile=./coverage/profile.cov ./...
+  # go test -v ./test/integration/resource
+  gotestsum --jsonfile ./test/coverage/coverage.log -- -covermode=count -coverprofile=./test/coverage/profile.cov ./test/integration/resource
 
 # html coverage report
 covreport:

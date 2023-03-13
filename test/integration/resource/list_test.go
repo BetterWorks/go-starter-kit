@@ -1,56 +1,85 @@
 package resourcetest
 
-// import (
-// 	"bytes"
-// 	"testing"
+import (
+	"testing"
 
-// 	utils "github.com/jasonsites/gosk-api/test/testutils"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jasonsites/gosk-api/internal/resolver"
+	"github.com/jasonsites/gosk-api/internal/types"
+	utils "github.com/jasonsites/gosk-api/test/testutils"
+	"github.com/stretchr/testify/suite"
+)
 
-// func TestResourceList(t *testing.T) {
-// 	var (
-// 		method      = "POST"
-// 	)
+type ListSuite struct {
+	suite.Suite
+	method   string
+	app      *fiber.App
+	db       *pgxpool.Pool
+	resolver *resolver.Resolver
+	records  []*types.ResourceEntity
+}
 
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "create resource succeeds (201) with valid payload",
-// 			Route:       routePrefix,
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"properties": {
-// 							"title": "Resource Title",
-// 							"description": "Resource Description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`)),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 201},
-// 		},
-// 	}
+func TestListSuite(t *testing.T) {
+	suite.Run(t, &ListSuite{})
+}
 
-// 	app, _, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		t.Log(err)
-// 	}
+// SetupSuite runs setup before all suite tests
+func (s *ListSuite) SetupSuite() {
+	app, db, resolver, err := utils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
+	s.method = "GET"
+	s.app = app
+	s.db = db
+	s.resolver = resolver
+}
 
-// 		res, err := app.Test(req, msTimeout)
-// 		if err != nil {
-// 			t.Log(err)
-// 		}
+// TearDownSuite runs teardown after all suite tests
+func (s *ListSuite) TearDownSuite() {
+	//
+}
 
-// 		assert.Equalf(t, test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+// SetupTest runs setup before each test
+func (s *ListSuite) SetupTest() {
+	records := make([]*types.ResourceEntity, 0, 4)
+
+	for range records {
+		record, err := insertRecord(s.db)
+		if err != nil {
+			s.T().Log(err)
+		}
+		records = append(records, record)
+		s.T().Log("\n\nHERE\n\n")
+	}
+}
+
+// TearDownTest runs teardown after each test
+func (s *ListSuite) TearDownTest() {
+	utils.Cleanup(s.resolver)
+}
+
+func (s *ListSuite) TestResourceList() {
+	tests := []utils.Setup{
+		{
+			Description: "resource list succeeds (200)",
+			Route:       routePrefix,
+			Request:     utils.Request{},
+			Expected:    utils.Expected{Code: 200},
+		},
+	}
+
+	for _, test := range tests {
+		req := utils.SetRequestData(s.method, test.Route, nil, nil)
+		msTimeout := 1000
+
+		res, err := s.app.Test(req, msTimeout)
+		if err != nil {
+			s.T().Log(err)
+		}
+
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}
