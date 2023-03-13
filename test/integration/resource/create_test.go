@@ -8,8 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/internal/resolver"
 	utils "github.com/jasonsites/gosk-api/test/testutils"
-
-	// "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -58,7 +56,7 @@ func (s *CreateSuite) TearDownTest() {
 func (s *CreateSuite) TestResourceCreate() {
 	tests := []utils.Setup{
 		{
-			Description: "create resource succeeds (201) with valid payload",
+			Description: "resource create succeeds (201) with valid payload",
 			Route:       routePrefix,
 			Request: utils.Request{
 				Body: bytes.NewBuffer([]byte(`{

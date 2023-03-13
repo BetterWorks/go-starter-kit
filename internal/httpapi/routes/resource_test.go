@@ -6,6 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResourceCreate(t *testing.T) {
+func TestResourceError(t *testing.T) {
 	t.Log(assert.AnError)
 }

@@ -16,6 +16,7 @@ services:
       - redis
     environment:
       APP_ENV: dev
+      GOCOVERDIR: coverage
       HTTPAPI_MODE: test
       LOGGER_APP_ENABLED: true
       LOGGER_HTTP_ENABLED: true

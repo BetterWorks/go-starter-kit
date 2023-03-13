@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.19
+FROM golang:1.20
 ENV MIGRATE_VERSION=v4.15.2
 WORKDIR /app
 COPY go.* package.json ./

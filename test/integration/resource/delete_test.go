@@ -9,7 +9,6 @@ import (
 	"github.com/jasonsites/gosk-api/internal/resolver"
 	"github.com/jasonsites/gosk-api/internal/types"
 	utils "github.com/jasonsites/gosk-api/test/testutils"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -23,7 +22,7 @@ type DeleteSuite struct {
 }
 
 func TestDeleteSuite(t *testing.T) {
-	suite.Run(t, &CreateSuite{})
+	suite.Run(t, &DeleteSuite{})
 }
 
 // SetupSuite runs setup before all suite tests
@@ -58,11 +57,10 @@ func (s *DeleteSuite) TearDownTest() {
 	utils.Cleanup(s.resolver)
 }
 
-func (s *DeleteSuite) TestResourceDelete(t *testing.T) {
-
+func (s *DeleteSuite) TestResourceDelete() {
 	tests := []utils.Setup{
 		{
-			Description: "delete resource succeeds (204)",
+			Description: "resource delete succeeds (204)",
 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
 			Request:     utils.Request{},
 			Expected:    utils.Expected{Code: 204},
@@ -75,9 +73,9 @@ func (s *DeleteSuite) TestResourceDelete(t *testing.T) {
 
 		res, err := s.app.Test(req, msTimeout)
 		if err != nil {
-			t.Log(err)
+			s.T().Log(err)
 		}
 
-		assert.Equalf(t, test.Expected.Code, res.StatusCode, test.Description)
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
 	}
 }
