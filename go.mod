@@ -1,6 +1,6 @@
 module github.com/jasonsites/gosk-api
 
-go 1.19
+go 1.20
 
 require (
 	github.com/go-playground/validator/v10 v10.11.2
@@ -8,7 +8,7 @@ require (
 	github.com/gofiber/helmet/v2 v2.2.24
 	github.com/google/uuid v1.3.0
 	github.com/hetiansu5/urlquery v1.2.7
-	github.com/jackc/pgx/v5 v5.3.1
+	github.com/jackc/pgx/v5 v5.3.0
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2

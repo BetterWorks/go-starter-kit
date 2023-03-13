@@ -17,7 +17,7 @@ $ cd gosk-api
 ## Development
 **Prerequisites**
 - *[Docker Desktop](https://www.docker.com/products/docker-desktop)*
-- *[Go 1.19+](https://golang.org/doc/install)*
+- *[Go 1.20+](https://golang.org/doc/install)*
 
 **Show all commands**
 ```sh
@@ -60,4 +60,4 @@ $ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 1. Create new pull request
 
 ## License
-Copyright (c) 2022-2023 Jason Sites
+Copyright (c) 2022 Jason Sites
