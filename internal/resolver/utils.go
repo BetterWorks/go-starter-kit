@@ -3,7 +3,7 @@ package resolver
 import (
 	"fmt"
 
-	"github.com/jasonsites/gosk-api/config"
+	"github.com/BetterWorks/gosk-api/config"
 )
 
 // postgresDSN returns a data source name string from a given postgres configuration

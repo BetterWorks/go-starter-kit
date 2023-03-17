@@ -3,9 +3,9 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // Config

@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/BetterWorks/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/validation"
 	"github.com/go-playground/validator/v10"
-	"github.com/jasonsites/gosk-api/internal/types"
-	"github.com/jasonsites/gosk-api/internal/validation"
 	"github.com/rs/zerolog"
 )
 

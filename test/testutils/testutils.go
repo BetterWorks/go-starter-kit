@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/BetterWorks/gosk-api/internal/resolver"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/resolver"
 )
 
 // Cleanup deletes all rows on all database tables

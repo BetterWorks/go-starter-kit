@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 const routePrefix = "/domain/resources"

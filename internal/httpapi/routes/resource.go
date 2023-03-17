@@ -3,8 +3,8 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
-	"github.com/jasonsites/gosk-api/internal/types"
+	ctrl "github.com/BetterWorks/gosk-api/internal/httpapi/controllers"
+	"github.com/BetterWorks/gosk-api/internal/types"
 )
 
 // ResourceRouter implements an example router group for a Resource resource

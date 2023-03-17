@@ -1,7 +1,7 @@
 package application
 
 import (
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/types"
 )
 
 // Application

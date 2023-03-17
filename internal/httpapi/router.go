@@ -9,11 +9,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/helmet/v2"
 
-	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
-	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
-	"github.com/jasonsites/gosk-api/internal/httpapi/routes"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/application"
+	"github.com/BetterWorks/gosk-api/internal/httpapi/controllers"
+	mw "github.com/BetterWorks/gosk-api/internal/httpapi/middleware"
+	"github.com/BetterWorks/gosk-api/internal/httpapi/routes"
+	"github.com/BetterWorks/gosk-api/internal/types"
 )
 
 type controllerRegistry struct {

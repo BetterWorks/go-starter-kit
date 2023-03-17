@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
+	ctrl "github.com/BetterWorks/gosk-api/internal/httpapi/controllers"
 	"github.com/gofiber/fiber/v2"
-	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed

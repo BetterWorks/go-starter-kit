@@ -3,9 +3,9 @@ package application
 import (
 	"context"
 
+	"github.com/BetterWorks/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/validation"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/types"
-	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 type ResourceServiceConfig struct {

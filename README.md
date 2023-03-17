@@ -1,5 +1,5 @@
 # gosk-api
-Go Starter Kit for HTTP API Applications
+Go Starter Kit for Betterworks Server Applications
 
 ## Architecture
 
@@ -10,7 +10,7 @@ Go Starter Kit for HTTP API Applications
 ## Installation
 Clone the repository
 ```sh
-$ git clone git@github.com:jasonsites/gosk-api.git
+$ git clone git@github.com:BetterWorks/gosk-api.git
 $ cd gosk-api
 ```
 
@@ -49,7 +49,7 @@ $ docker compose run --rm --service-ports api
 ## Building
 **Compile server binary**
 ```sh
-$ go build -mod vendor -o out/bin/domain ./cmd/httpserver
+$ go build -mod vendor -o out/bin/domain ./cmd/server
 ```
 
 ## Contributing
