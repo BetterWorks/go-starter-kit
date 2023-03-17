@@ -1,5 +1,5 @@
 # gosk-api
-Go Starter Kit for HTTP API Applications
+Go Starter Kit for Betterworks Server Applications
 
 ## Architecture
 
@@ -10,7 +10,7 @@ Go Starter Kit for HTTP API Applications
 ## Installation
 Clone the repository
 ```sh
-$ git clone git@github.com:jasonsites/gosk-api.git
+$ git clone git@github.com:BetterWorks/gosk-api.git
 $ cd gosk-api
 ```
 

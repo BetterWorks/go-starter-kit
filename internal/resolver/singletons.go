@@ -8,12 +8,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 
-	"github.com/jasonsites/gosk-api/config"
-	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo"
-	"github.com/jasonsites/gosk-api/internal/types"
-	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/BetterWorks/gosk-api/config"
+	"github.com/BetterWorks/gosk-api/internal/application"
+	"github.com/BetterWorks/gosk-api/internal/httpapi"
+	"github.com/BetterWorks/gosk-api/internal/repo"
+	"github.com/BetterWorks/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/validation"
 )
 
 // Application provides a singleton application.Application instance

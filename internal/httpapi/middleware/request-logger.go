@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 

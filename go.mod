@@ -1,4 +1,4 @@
-module github.com/jasonsites/gosk-api
+module github.com/BetterWorks/gosk-api
 
 go 1.20
 

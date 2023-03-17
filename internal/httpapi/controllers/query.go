@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/hetiansu5/urlquery"
-	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 func parseQuery(qs []byte) *types.QueryData {

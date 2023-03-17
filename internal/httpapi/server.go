@@ -3,10 +3,10 @@ package httpapi
 import (
 	"strconv"
 
+	"github.com/BetterWorks/gosk-api/internal/application"
+	"github.com/BetterWorks/gosk-api/internal/types"
+	"github.com/BetterWorks/gosk-api/internal/validation"
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/application"
-	"github.com/jasonsites/gosk-api/internal/types"
-	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // Config defines the input to NewServer

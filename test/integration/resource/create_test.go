@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/BetterWorks/gosk-api/internal/resolver"
+	utils "github.com/BetterWorks/gosk-api/test/testutils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/resolver"
-	utils "github.com/jasonsites/gosk-api/test/testutils"
 	"github.com/stretchr/testify/suite"
 )
 
