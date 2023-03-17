@@ -39,7 +39,7 @@ migrate-create name:
 # run http server in dev mode
 serve-dev:
   just migrate
-  go run ./cmd/httpserver/main.go
+  go run ./cmd/server/main.go
 
 # run http server in dev mode with air monitor
 serve-air:

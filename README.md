@@ -49,7 +49,7 @@ $ docker compose run --rm --service-ports api
 ## Building
 **Compile server binary**
 ```sh
-$ go build -mod vendor -o out/bin/domain ./cmd/httpserver
+$ go build -mod vendor -o out/bin/domain ./cmd/server
 ```
 
 ## Contributing
