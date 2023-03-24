@@ -1,0 +1,57 @@
+name: coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  run-golang-tests:
+    runs-on: [self-hosted, small, dev1]
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+      
+      - uses: KengoTODA/actions-setup-docker-compose@main
+        with:
+          version: '1.29.2'
+      
+      - name: Build Image and Wait For Test DB
+        run: docker-compose -f docker-coverage.yml run --rm api bash -c 'while !</dev/tcp/authorization_db/5432; do sleep 1; done;'
+
+      - name: Run Unit and Integration Tests
+        run: docker-compose -f docker-coverage.yml run -e POSTGRES_DB=testdb api just coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          file: coverage.out #defined in justfile
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: junit.xml
+
+      - name: Archive Test Output
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-output
+          path: test-output.log
+
+      - name: Archive Code Coverage Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: coverage.html

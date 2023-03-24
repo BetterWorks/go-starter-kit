@@ -56,7 +56,7 @@ test:
 coverage:
   just migrate-up testdb
   # go test -v ./test/integration/resource
-  gotestsum --jsonfile ./test/coverage/coverage.log -- -covermode=count -coverprofile=./test/coverage/profile.cov ./test/integration/resource
+  gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/profile.cov ./test/integration/resource
 
 # html coverage report
 covreport:
