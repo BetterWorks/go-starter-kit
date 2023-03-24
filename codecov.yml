@@ -1,0 +1,18 @@
+coverage:
+#  ignore:
+#    - "out"
+#    - "sdk"
+#    - "tmp"
+#    - "vendor"
+
+  status:
+    patch:
+      default:
+        target: 90%
+        if_no_uploads: error
+        if_ci_failed: error
+    project:
+      default:
+        target: auto
+        if_no_uploads: error
+        if_ci_failed: error
