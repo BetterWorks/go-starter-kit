@@ -1,0 +1,38 @@
+name: coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  run-golang-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+      
+#      - uses: KengoTODA/actions-setup-docker-compose@main
+#        with:
+#          version: '1.29.2'
+      
+      - name: Build Image and Wait For Test DB
+        run: docker compose -f docker-coverage.yml run --rm coverage bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done;'
+
+      - name: Run Unit and Integration Tests
+        run: docker compose -f docker-coverage.yml run coverage just coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          file: ./test/coverage/coverage.out
