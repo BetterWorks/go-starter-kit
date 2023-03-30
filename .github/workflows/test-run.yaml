@@ -35,23 +35,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          file: coverage.out #defined in justfile
-
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: junit.xml
-
-      - name: Archive Test Output
-        uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: test-output
-          path: test-output.log
-
-      - name: Archive Code Coverage Results
-        uses: actions/upload-artifact@v2
-        with:
-          name: code-coverage-report
-          path: coverage.html
+          file: ./test/coverage/coverage.out
