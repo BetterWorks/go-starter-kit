@@ -20,15 +20,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
       
-      - uses: KengoTODA/actions-setup-docker-compose@main
-        with:
-          version: '1.29.2'
+#      - uses: KengoTODA/actions-setup-docker-compose@main
+#        with:
+#          version: '1.29.2'
       
       - name: Build Image and Wait For Test DB
-        run: docker-compose -f docker-coverage.yml run --rm api bash -c 'while !</dev/tcp/authorization_db/5432; do sleep 1; done;'
+        run: docker compose -f docker-coverage.yml run --rm api bash -c 'while !</dev/tcp/authorization_db/5432; do sleep 1; done;'
 
       - name: Run Unit and Integration Tests
-        run: docker-compose -f docker-coverage.yml run -e POSTGRES_DB=testdb api just coverage
+        run: docker compose -f docker-coverage.yml run -e POSTGRES_DB=testdb coverage just coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
