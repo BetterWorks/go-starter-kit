@@ -1,11 +1,9 @@
 # gosk-api
 Go Starter Kit for Betterworks Server Applications
 
-## Architecture
-
-<p align="center">
-  <img src="./architecture.png" width="70%" alt="architecture" />
-</p>
+## Documentation
+- [Architecture](./documentation/architecture.md)
+- [Getting Started](./documentation/getting-started.md)
 
 ## Installation
 Clone the repository
