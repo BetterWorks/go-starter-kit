@@ -9,38 +9,12 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/BetterWorks/gosk-api/config"
-	"github.com/BetterWorks/gosk-api/internal/application"
+	"github.com/BetterWorks/gosk-api/internal/domain"
 	"github.com/BetterWorks/gosk-api/internal/httpapi"
 	"github.com/BetterWorks/gosk-api/internal/repo"
 	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/BetterWorks/gosk-api/internal/validation"
 )
-
-// Application provides a singleton application.Application instance
-func (r *Resolver) Application() (*application.Application, error) {
-	if r.application == nil {
-		svcResource, err := application.NewResourceService(&application.ResourceServiceConfig{
-			Logger: &types.Logger{
-				Enabled: r.config.Logger.SvcExample.Enabled,
-				Level:   r.config.Logger.SvcExample.Level,
-				Log:     r.log,
-			},
-			Repo: r.repoResource,
-		})
-		if err != nil {
-			log.Printf("error resolving application resource service: %v", err)
-			return nil, err
-		}
-
-		services := &application.Services{
-			ResourceService: svcResource,
-		}
-
-		r.application = application.NewApplication(services)
-	}
-
-	return r.application, nil
-}
 
 // Config provides a singleton config.Configuration instance
 func (r *Resolver) Config() (*config.Configuration, error) {
@@ -56,12 +30,38 @@ func (r *Resolver) Config() (*config.Configuration, error) {
 	return r.config, nil
 }
 
+// Domain provides a singleton domain.Domain instance
+func (r *Resolver) Domain() (*domain.Domain, error) {
+	if r.domain == nil {
+		svcResource, err := domain.NewResourceService(&domain.ResourceServiceConfig{
+			Logger: &types.Logger{
+				Enabled: r.config.Logger.SvcExample.Enabled,
+				Level:   r.config.Logger.SvcExample.Level,
+				Log:     r.log,
+			},
+			Repo: r.repoResource,
+		})
+		if err != nil {
+			log.Printf("error resolving domain resource service: %v", err)
+			return nil, err
+		}
+
+		services := &domain.Services{
+			ResourceService: svcResource,
+		}
+
+		r.domain = domain.NewDomain(services)
+	}
+
+	return r.domain, nil
+}
+
 // HTTPServer provides a singleton httpapi.Server instance
 func (r *Resolver) HTTPServer() (*httpapi.Server, error) {
 	if r.httpServer == nil {
 		server, err := httpapi.NewServer(&httpapi.Config{
-			Application: r.application,
-			BaseURL:     r.config.HttpAPI.BaseURL,
+			BaseURL: r.config.HttpAPI.BaseURL,
+			Domain:  r.domain,
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.Http.Enabled,
 				Level:   r.config.Logger.Http.Level,
