@@ -19,16 +19,13 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v2
-      
+
 #      - uses: KengoTODA/actions-setup-docker-compose@main
 #        with:
 #          version: '1.29.2'
-      
-      - name: Build Image and Wait For Test DB
-        run: docker compose -f docker-coverage.yml run --rm coverage bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done;'
 
-      - name: Run Unit and Integration Tests
-        run: docker compose -f docker-coverage.yml run coverage just coverage
+      - name: Build Image and Run Integration Tests
+        run: docker compose run --rm coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

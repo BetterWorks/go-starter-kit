@@ -10,10 +10,12 @@ services:
     build:
       context: .
       dockerfile: ./test/Dockerfile
-    command: bash -c 'while !</dev/tcp/domain_db/5432; do sleep 1; done; just serve-air'
+    command: just serve-air
     depends_on:
-      - domain_db
-      - redis
+      postgres_db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       APP_ENV: dev
       HTTPAPI_MODE: debug
@@ -23,7 +25,7 @@ services:
       LOGGER_DOMAIN_ENABLED: true
       LOGGER_REPO_ENABLED: true
       POSTGRES_DB: svcdb
-      POSTGRES_HOST: domain_db
+      POSTGRES_HOST: postgres_db
       POSTGRES_PASSWORD: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
@@ -42,7 +44,45 @@ services:
       - .:/app
       - /app/vendor
 
-  domain_db:
+  coverage:
+    build:
+      context: .
+      dockerfile: ./test/Dockerfile
+    command: just coverage
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      APP_ENV: dev
+      GOCOVERDIR: coverage
+      HTTPAPI_MODE: test
+      LOGGER_APP_ENABLED: true
+      LOGGER_HTTP_ENABLED: true
+      LOGGER_HTTP_LEVEL: debug
+      LOGGER_DOMAIN_ENABLED: true
+      LOGGER_REPO_ENABLED: true
+      POSTGRES_DB: testdb
+      POSTGRES_HOST: postgres_db
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_VERSION: 14
+      REDIS_DB: 0
+      REDIS_HOST: redis
+      REDIS_PASSWORD: redis
+      REDIS_PORT: 6379
+      SVC_EXAMPLE_HOST: http://host.docker.internal:8000
+    networks:
+      - local-dev
+    ports:
+      - 9204:9204
+    volumes:
+      - .:/app
+      - /app/vendor
+
+  postgres_db:
     image: postgres:14
     deploy:
       restart_policy:
@@ -52,6 +92,11 @@ services:
       POSTGRES_USER: postgres
       PGDATA: /var/lib/postgresql/data/pgdata
       POSTGRES_MULTIPLE_DATABASES: svcdb,testdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - local-dev
     ports:

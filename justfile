@@ -21,11 +21,11 @@ clean:
 # Migrations ======================================================================================
 # migrate down
 migrate-down db +step='-all':
-  migrate -path ./database/migrations -database postgres://postgres:postgres@domain_db:5432/{{db}}?sslmode=disable down {{step}}
+  migrate -path ./database/migrations -database postgres://postgres:postgres@postgres_db:5432/{{db}}?sslmode=disable down {{step}}
 
 # migrate up
 migrate-up db *step:
-  migrate -path ./database/migrations -database postgres://postgres:postgres@domain_db:5432/{{db}}?sslmode=disable up {{step}}
+  migrate -path ./database/migrations -database postgres://postgres:postgres@postgres_db:5432/{{db}}?sslmode=disable up {{step}}
 
 # migrate up -all (alias)
 migrate:
