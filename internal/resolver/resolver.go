@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/BetterWorks/gosk-api/config"
-	"github.com/BetterWorks/gosk-api/internal/application"
+	"github.com/BetterWorks/gosk-api/internal/domain"
 	"github.com/BetterWorks/gosk-api/internal/httpapi"
 	"github.com/BetterWorks/gosk-api/internal/types"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -13,7 +13,7 @@ import (
 
 // Config defines the input to NewResolver
 type Config struct {
-	Application      *application.Application
+	Domain           *domain.Domain
 	Config           *config.Configuration
 	HTTPServer       *httpapi.Server
 	Log              *zerolog.Logger
@@ -30,7 +30,7 @@ type Metadata struct {
 
 // Resolver provides singleton instances of app components
 type Resolver struct {
-	application      *application.Application
+	domain           *domain.Domain
 	config           *config.Configuration
 	context          context.Context
 	httpServer       *httpapi.Server
@@ -47,7 +47,7 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	}
 
 	r := &Resolver{
-		application:      c.Application,
+		domain:           c.Domain,
 		config:           c.Config,
 		context:          ctx,
 		httpServer:       c.HTTPServer,
@@ -77,7 +77,7 @@ func (r *Resolver) Initialize() error {
 	if _, err := r.RepositoryResource(); err != nil {
 		return err
 	}
-	if _, err := r.Application(); err != nil {
+	if _, err := r.Domain(); err != nil {
 		return err
 	}
 	if _, err := r.HTTPServer(); err != nil {
