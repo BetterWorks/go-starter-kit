@@ -25,6 +25,5 @@ RUN go mod vendor
 # RUN just lint
 
 EXPOSE 9202
-EXPOSE 9204
 
 CMD ["just"]

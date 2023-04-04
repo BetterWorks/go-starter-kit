@@ -55,8 +55,7 @@ test:
 # run tests with coverage report
 coverage:
   just migrate-up testdb
-  # go test -v ./test/integration/resource
-  gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/coverage.out ./test/integration/resource
+  POSTGRES_DB=testdb gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/coverage.out ./test/integration/resource
 
 # html coverage report
 covreport:
