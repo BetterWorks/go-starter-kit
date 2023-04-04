@@ -60,7 +60,7 @@ The `config` package handles all app configuration. The `config.toml` file can b
 ```
 internal/types
 ```
-The types package is used for declaring data types that may be shared across packages. Housing sharable data types here eliminates the possibility of circular references between packages.
+The types package is used for declaring data types that may be shared across packages.
 
 ### Validation
 ```
