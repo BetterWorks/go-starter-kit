@@ -21,11 +21,11 @@ clean:
 # Migrations ======================================================================================
 # migrate down
 migrate-down db +step='-all':
-  migrate -path ./database/migrations -database postgres://postgres:postgres@domain_db:5432/{{db}}?sslmode=disable down {{step}}
+  migrate -path ./database/migrations -database postgres://postgres:postgres@postgres_db:5432/{{db}}?sslmode=disable down {{step}}
 
 # migrate up
 migrate-up db *step:
-  migrate -path ./database/migrations -database postgres://postgres:postgres@domain_db:5432/{{db}}?sslmode=disable up {{step}}
+  migrate -path ./database/migrations -database postgres://postgres:postgres@postgres_db:5432/{{db}}?sslmode=disable up {{step}}
 
 # migrate up -all (alias)
 migrate:
@@ -55,8 +55,7 @@ test:
 # run tests with coverage report
 coverage:
   just migrate-up testdb
-  # go test -v ./test/integration/resource
-  gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/coverage.out ./test/integration/resource
+  POSTGRES_DB=testdb gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/coverage.out ./test/integration/resource
 
 # html coverage report
 covreport:

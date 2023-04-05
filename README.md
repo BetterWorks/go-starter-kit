@@ -44,6 +44,12 @@ $ docker compose run --rm api just migrate-down svcdb {n}
 $ docker compose run --rm --service-ports api
 ```
 
+### Testing
+**Run the integration test suite with code coverage**
+```sh
+$ docker compose run --rm api just coverage
+```
+
 ## Building
 **Compile server binary**
 ```sh
