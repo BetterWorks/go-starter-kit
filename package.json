@@ -1,23 +1,4 @@
 {
   "name": "gosk-api",
-  "version": "0.0.1",
-  "description": "Go Starter Kit for Betterworks Server Applications",
-  "keywords": [
-    "api",
-    "go",
-    "golang",
-    "http",
-    "starter kit",
-    "web"
-  ],
-  "author": "Jason Sites <email@jasonsites.com> (https://github.com/jasonsites)",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/BetterWorks/gosk-api.git"
-  },
-  "bugs": {
-    "url": "https://github.com/BetterWorks/gosk-api/issues"
-  },
-  "homepage": "https://github.com/BetterWorks/gosk-api#readme"
+  "version": "0.0.1"
 }
