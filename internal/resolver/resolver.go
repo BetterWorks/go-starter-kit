@@ -13,8 +13,8 @@ import (
 
 // Config defines the input to NewResolver
 type Config struct {
-	Domain           *domain.Domain
 	Config           *config.Configuration
+	Domain           *domain.Domain
 	HTTPServer       *httpapi.Server
 	Log              *zerolog.Logger
 	Metadata         *Metadata
@@ -30,9 +30,9 @@ type Metadata struct {
 
 // Resolver provides singleton instances of app components
 type Resolver struct {
-	domain           *domain.Domain
 	config           *config.Configuration
 	context          context.Context
+	domain           *domain.Domain
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
@@ -47,9 +47,9 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	}
 
 	r := &Resolver{
-		domain:           c.Domain,
 		config:           c.Config,
 		context:          ctx,
+		domain:           c.Domain,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,

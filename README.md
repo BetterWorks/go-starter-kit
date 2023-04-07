@@ -38,6 +38,11 @@ $ docker compose run --rm api just migrate-up svcdb {n}
 $ docker compose run --rm api just migrate-down svcdb {n}
 ```
 
+**Create new migration**
+```sh
+$ docker compose run --rm api just migrate-create {name}
+```
+
 ### Server
 **Run the server in development mode**
 ```sh
