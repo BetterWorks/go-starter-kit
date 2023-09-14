@@ -1,9 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- Resource Entity
-DROP TABLE IF EXISTS resource_entity;
+DROP TABLE IF EXISTS example_entity;
 
-CREATE TABLE IF NOT EXISTS resource_entity (
+CREATE TABLE IF NOT EXISTS example_entity (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title       varchar(255) NOT NULL,
   description text,
@@ -17,4 +16,4 @@ CREATE TABLE IF NOT EXISTS resource_entity (
   modified_by integer
 );
 
-CREATE INDEX resource_entity_status_idx ON resource_entity (status);
+CREATE INDEX example_entity_status_idx ON example_entity (status);
