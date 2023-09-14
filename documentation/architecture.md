@@ -17,7 +17,7 @@ The primary design drivers for the application are:
 ### Modularity & Functional Isolation
 To keep the application in a highly maintainable and extendable state, it is important to maintain strict boundaries around each of the layers.
 
-For example, the HTTP API (external interface) layer is concerned with all HTTP concepts, including HTTP status codes. Developers should be careful not to allow HTTP concepts to leak into the domain logic or repository layers. An application could use both HTTP and gRPC APIs simultaneously, which have very different sets of status codes.
+For example, the HTTP API (external interface) layer is concerned with all HTTP concepts, including HTTP status codes. Care should be taken not to allow HTTP concepts to leak into the domain logic or repository layers. An application could use both HTTP and gRPC APIs simultaneously, which have very different sets of status codes.
 
 Another example is the repository implementation details. All calls from a service to a repository are abstracted so that any knowledge of the underlying database server are isolated to the repository. This starter kit uses PostgresQL because that will be the most common use case, but there may be an entirely different datastore or multiple datastores in a real-world application. In any case, the domain logic should never be concerned with the underlying db technology.
 
@@ -70,9 +70,9 @@ The `validation` package creates a new singleton validator used across the appli
 
 ### HTTP API
 ```
-internal/httpapi
+internal/http
 ```
-The `httpapi` package contains everything related to the HTTP interface layer of the application. It handles server and router instantiation, and contains 3 sub-packages:
+The `http` package contains everything related to the HTTP interface layer of the application. It handles server and router instantiation, and contains 3 sub-packages:
 1. The `routes` package declares and manages all HTTP API routes
 1. The `middleware` package houses the middleware available to all routes
 1. The `controllers` package provides the route handlers, which parse and validate request data before passing data along to the `application` services layer.
