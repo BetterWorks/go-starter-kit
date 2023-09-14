@@ -58,7 +58,7 @@ $ docker compose run --rm api just coverage
 ## Building
 **Compile server binary**
 ```sh
-$ go build -mod vendor -o out/bin/domain ./cmd/server
+$ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 ```
 
 ## Contributing

@@ -8,14 +8,34 @@ import (
 
 // Configuration defines app configuration on startup
 type Configuration struct {
-	HttpAPI  HttpAPI  `validate:"required"`
+	External External `validate:"required"`
+	HTTP     HTTP     `validate:"required"`
 	Logger   Logger   `validate:"required"`
 	Metadata Metadata `validate:"required"`
 	Postgres Postgres `validate:"required"`
-	Services Services `validate:"required"`
 }
 
-type HttpAPI struct {
+type HTTP struct {
+	API    HTTPAPI    `validate:"required"`
+	Server HTTPServer `validate:"required"`
+}
+
+type HTTPAPI struct {
+	Paging  HTTPAPIPaging  `validate:"required"`
+	Sorting HTTPAPISorting `validate:"required"`
+}
+
+type HTTPAPIPaging struct {
+	DefaultLimit  uint `validate:"required"`
+	DefaultOffset uint `validate:"required"`
+}
+
+type HTTPAPISorting struct {
+	DefaultAttr  string `validate:"required"`
+	DefaultOrder string `validate:"required"`
+}
+
+type HTTPServer struct {
 	BaseURL   string
 	Mode      string `validate:"required,oneof=debug release test"`
 	Namespace string `validate:"required"`
@@ -24,10 +44,10 @@ type HttpAPI struct {
 }
 
 type Logger struct {
-	App        LoggerConfig `validate:"required"`
-	Http       LoggerConfig `validate:"required"`
-	Repo       LoggerConfig `validate:"required"`
-	SvcExample LoggerConfig `validate:"required"`
+	App    LoggerConfig `validate:"required"`
+	Domain LoggerConfig `validate:"required"`
+	HTTP   LoggerConfig `validate:"required"`
+	Repo   LoggerConfig `validate:"required"`
 }
 
 type LoggerConfig struct {
@@ -47,11 +67,11 @@ type Postgres struct {
 	User     string `validate:"required"`
 }
 
-type Services struct {
-	Example ServiceConfig
+type External struct {
+	Example ExternalServiceConfig
 }
 
-type ServiceConfig struct {
+type ExternalServiceConfig struct {
 	BaseURL string
 	Timeout uint
 }
@@ -68,15 +88,15 @@ func LoadConfiguration() (*Configuration, error) {
 
 	viper.AllowEmptyEnv(true)
 
-	// http api
-	if err := viper.BindEnv("httpapi.mode", "HTTPAPI_MODE"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_MODE`: %v", err)
+	// http server
+	if err := viper.BindEnv("http.server.mode", "HTTP_SERVER_MODE"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_MODE`: %v", err)
 	}
-	if err := viper.BindEnv("httpapi.baseURL", "HTTPAPI_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_BASEURL`: %v", err)
+	if err := viper.BindEnv("http.server.baseURL", "HTTP_SERVER_BASEURL"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_BASEURL`: %v", err)
 	}
-	if err := viper.BindEnv("httpapi.port", "HTTPAPI_PORT"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_PORT`: %v", err)
+	if err := viper.BindEnv("http.server.port", "HTTP_SERVER_PORT"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_PORT`: %v", err)
 	}
 
 	// logger - app
@@ -133,12 +153,12 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `POSTGRES_USER`: %v", err)
 	}
 
-	// service - example
-	if err := viper.BindEnv("services.example.baseURL", "SVC_EXAMPLE_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `SVC_EXAMPLE_BASEURL`: %v", err)
+	// external service - example
+	if err := viper.BindEnv("external.services.example.baseURL", "EXTSVC_EXAMPLE_BASEURL"); err != nil {
+		log.Fatalf("error binding env var `EXTSVC_EXAMPLE_BASEURL`: %v", err)
 	}
-	if err := viper.BindEnv("services.example.timeout", "SVC_EXAMPLE_TIMEOUT"); err != nil {
-		log.Fatalf("error binding env var `SVC_EXAMPLE_TIMEOUT`: %v", err)
+	if err := viper.BindEnv("external.services.example.timeout", "EXTSVC_EXAMPLE_TIMEOUT"); err != nil {
+		log.Fatalf("error binding env var `EXTSVC_EXAMPLE_TIMEOUT`: %v", err)
 	}
 
 	// read and unmarshal config

@@ -39,28 +39,30 @@ The starter kit contains a single generic resource called `Resource`. You can us
 ### Code Changes
 By example, let's say we're adding a new resource called `TShirt`.
 
-The following is a list of locations where code needs to be modified to add the new resource:
-- add `/internal/types/tshirt.go` containing the various type definitions
-- modify `/internal/types/domain.go` to add:
-  - `TShirt string` to the `DomainRegistry` struct
-  - `TShirt: "tshirt"` to the `DomainType` variable
+The following is a list of locations where code needs to be modified to add the new resource/model:
+- add `/internal/core/models/tshirt.go` containing the various type definitions
+- modify `/internal/core/interfaces/repo.go` to add:
+  - `type TShirtRepository interface { ... }` definition
 - add `/internal/repo/tshirt.go` repository code
 - add `/internal/domain/tshirt.go` service code
-- modify `/internal/domain/domain.go` to add:
-  - `TShirtService types.Service` to the `Services` struct
-- add `/internal/httpapi/routes/tshirt.go` with `TShirtRouter` route definitions
-- modify `/internal/httpapi/router.go` to add:
+- modify `/internal/domain/application.go` to add:
+  - `TShirtService interfaces.Service` to the `Services` struct
+- add `/internal/http/routes/tshirt.go` with `TShirtRouter` route definitions
+- modify `/internal/http/httpserver/router.go` to add:
   - `TShirtController *controllers.Controller` to the `controllerRegistry` struct
   - `TShirtController: ...` to the `controllerRegistry` in the `registerControllers` function
   - `routes.TShirtRouter(app, c.TShirtController, ns)` to the `registerRoutes` method
-- modify `/internal/resolver/singletons.go` to add:
-  - a `RepositoryTShirt` method mirroring the `RepositoryResource` method
-  - an entry for `svcTShirt` in the `Domain` method
+- modify `/internal/resolver/loaders.go` to add:
+  - a `TShirtRepository` method mirroring the `ExampleRepository` method
+  - a `TShirtService` method mirroring the `ExampleService` method
+  - an `TShirt: r.TShirtService(),` entry in the `Domain` method's `domain.Services` struct
 - modify `/internal/resolver/resolver.go` to add:
-  - `RepoTShirt types.Repository` to the `Config` struct
-  - `repoTShirt types.Repository` to the `Resolver` struct
-  - `repoTShirt: c.RepoTShirt,` to the `Resolver` instantiation in the `NewResolver` function
-  - an entry for `r.RepositoryTShirt()` in the `Initialize` method
+  - `TShirtRepo interfaces.TShirtRepository` to the `Config` struct
+  - `tShirtRepo interfaces.TShirtRepository` to the `Resolver` struct
+  - `tShirtRepo: c.TShirtRepository,` to the `Resolver` instantiation in the `NewResolver` function
+  - `TShirtService interfaces.Service` to the `Config` struct
+  - `tShirtService interfaces.Service` to the `Resolver` struct
+  - `tShirtService: c.TShirtService,` to the `Resolver` instantiation in the `NewResolver` function
 
 :warning: It will likely take some time to get working code in all those locations. Once complete, the `Resource` code can be removed, and the app code developed from there.
 

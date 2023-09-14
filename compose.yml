@@ -1,0 +1,90 @@
+version: '3.9'
+
+networks:
+  local-dev:
+    name: local-dev-1
+    driver: bridge
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./test/Dockerfile
+    command: just serve-air
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      # redis:
+      #   condition: service_started
+    environment:
+      APP_ENV: dev
+      GOCOVERDIR: coverage
+      HTTPSERVER_MODE: debug
+      LOGGER_APP_ENABLED: true
+      LOGGER_HTTP_ENABLED: true
+      LOGGER_HTTP_LEVEL: debug
+      LOGGER_DOMAIN_ENABLED: true
+      LOGGER_REPO_ENABLED: true
+      POSTGRES_DB: svcdb
+      POSTGRES_HOST: postgres_db
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_VERSION: 14
+      REDIS_DB: 0
+      REDIS_HOST: host.docker.internal
+      REDIS_PASSWORD: redis
+      REDIS_PORT: 6379
+      SERVER_HOST: ""
+      SVC_EXAMPLE_HOST: http://host.docker.internal:8000
+    networks:
+      - local-dev
+    ports:
+      - 9202:9202
+    volumes:
+      - ./cmd:/app/cmd
+      - ./config:/app/config
+      - ./database:/app/database
+      - ./internal:/app/internal
+      - ./test:/app/test
+      - ./justfile:/app/justfile
+      - ./package.json:/app/package.json
+
+  postgres_db:
+    image: postgres:14
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_MULTIPLE_DATABASES: svcdb,testdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 20s
+      retries: 10
+    networks:
+      - local-dev
+    ports:
+      - 25432:5432
+    volumes:
+      - ./database/scripts:/docker-entrypoint-initdb.d/
+      - postgres-data:/var/lib/postgresql/data
+
+  # redis:
+  #   image: redis:6.2
+  #   command: redis-server /usr/local/etc/redis/redis.conf
+  #   deploy:
+  #     restart_policy:
+  #       condition: on-failure
+  #   networks:
+  #     - local-dev
+  #   ports:
+  #     - 26379:6379
+  #   volumes:
+  #     - ./redis.conf:/usr/local/etc/redis/redis.conf
+
+volumes:
+  postgres-data:
