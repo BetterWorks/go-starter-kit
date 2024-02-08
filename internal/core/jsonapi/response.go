@@ -1,7 +1,7 @@
 package jsonapi
 
 import (
-	"github.com/BetterWorks/gosk-api/internal/core/pagination"
+	"github.com/BetterWorks/go-starter-kit/internal/core/pagination"
 	"github.com/google/uuid"
 )
 
@@ -11,9 +11,9 @@ type Response struct {
 	Data any               `json:"data"`
 }
 
-// ListMeta
+// ResponseMetadata
 type ResponseMetadata struct {
-	Paging pagination.PageMetadata `json:"paging,omitempty"`
+	Page pagination.PageMetadata `json:"page,omitempty"`
 }
 
 // Resource

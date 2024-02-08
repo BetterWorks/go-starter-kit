@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
-	ctrl "github.com/BetterWorks/gosk-api/internal/http/controllers"
+	"github.com/BetterWorks/go-starter-kit/internal/core/jsonapi"
+	"github.com/BetterWorks/go-starter-kit/internal/http/jsonio"
 	"github.com/go-chi/chi/v5"
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed
-func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
+func BaseRouter(r *chi.Mux, ns string) {
 	prefix := fmt.Sprintf("/%s", ns)
 
 	get := func(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +19,9 @@ func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
 		path := r.URL.Path
 		remoteAddress := r.RemoteAddr
 
-		data := ctrl.Envelope{
+		data := jsonapi.Envelope{
 			"data": "base router is working...",
-			"request": ctrl.Envelope{
+			"request": jsonapi.Envelope{
 				"headers":       headers,
 				"host":          host,
 				"path":          path,
@@ -28,7 +29,7 @@ func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
 			},
 		}
 
-		c.JSONEncode(w, r, http.StatusOK, data)
+		jsonio.EncodeResponse(w, r, http.StatusOK, data)
 	}
 
 	r.Route(prefix, func(r chi.Router) {

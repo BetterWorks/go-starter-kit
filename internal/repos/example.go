@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BetterWorks/gosk-api/internal/core/cerror"
-	"github.com/BetterWorks/gosk-api/internal/core/entities"
-	"github.com/BetterWorks/gosk-api/internal/core/interfaces"
-	"github.com/BetterWorks/gosk-api/internal/core/logger"
-	"github.com/BetterWorks/gosk-api/internal/core/models"
-	"github.com/BetterWorks/gosk-api/internal/core/pagination"
-	"github.com/BetterWorks/gosk-api/internal/core/query"
-	"github.com/BetterWorks/gosk-api/internal/core/trace"
-	"github.com/BetterWorks/gosk-api/internal/core/validation"
+	"github.com/BetterWorks/go-starter-kit/internal/core/app"
+	"github.com/BetterWorks/go-starter-kit/internal/core/cerror"
+	"github.com/BetterWorks/go-starter-kit/internal/core/entities"
+	"github.com/BetterWorks/go-starter-kit/internal/core/logger"
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/core/pagination"
+	"github.com/BetterWorks/go-starter-kit/internal/core/query"
+	"github.com/BetterWorks/go-starter-kit/internal/core/trace"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -57,41 +56,34 @@ var exampleEntity = exampleEntityDefinition{
 
 // ExampleRepoConfig defines the input to NewExampleRepository
 type ExampleRepoConfig struct {
-	DBClient *pgxpool.Pool  `validate:"required"`
-	Logger   *logger.Logger `validate:"required"`
+	DBClient *pgxpool.Pool        `validate:"required"`
+	Logger   *logger.CustomLogger `validate:"required"`
 }
 
 // exampleRepository
 type exampleRepository struct {
 	Entity exampleEntityDefinition
 	db     *pgxpool.Pool
-	logger *logger.Logger
+	logger *logger.CustomLogger
 }
 
 // NewExampleRepository returns a new exampleRepository instance
 func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
-	}
-
-	log := c.Logger.Log.With().Str("tags", "repo,example").Logger()
-	logger := &logger.Logger{
-		Enabled: c.Logger.Enabled,
-		Level:   c.Logger.Level,
-		Log:     &log,
 	}
 
 	repo := &exampleRepository{
 		Entity: exampleEntity,
 		db:     c.DBClient,
-		logger: logger,
+		logger: c.Logger,
 	}
 
 	return repo, nil
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInputData) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -105,9 +97,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInpu
 
 		insertFields, values := buildInsertFieldsAndValues(
 			field.CreatedBy,
-			field.Deleted,
 			field.Description,
-			field.Enabled,
 			field.Status,
 			field.Title,
 		)
@@ -150,9 +140,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInpu
 		ctx,
 		query,
 		createdBy,
-		requestData.Deleted,
 		description,
-		requestData.Enabled,
 		status,
 		requestData.Title,
 	).Scan(
@@ -167,7 +155,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInpu
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -202,7 +190,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	// create new entity for db row scan and execute query
 	entity := entities.ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return err
 	}
 
@@ -210,7 +198,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -240,7 +228,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 
 	// create new entity for db row scan and execute query
 	entity := entities.ExampleEntity{}
-	if scanErr := r.db.QueryRow(ctx, query).Scan(
+	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
 		&entity.Deleted,
@@ -251,11 +239,9 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 		&entity.ModifiedOn,
 		&entity.Status,
 		&entity.Title,
-	); scanErr != nil {
-		log.Error().Err(scanErr).Send()
-		err := cerror.NewNotFoundError(
-			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
-		)
+	); err != nil {
+		log.Error(err.Error())
+		err := cerror.NewNotFoundError(nil, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
 		return nil, err
 	}
 
@@ -270,7 +256,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interfaces.DomainModel, error) {
+func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -310,7 +296,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	// execute query, returning rows
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -337,7 +323,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 			&entity.Status,
 			&entity.Title,
 		); err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			return nil, err
 		}
 
@@ -345,7 +331,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -354,7 +340,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	var total int
 	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
 	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -373,7 +359,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInputData, id uuid.UUID) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -386,9 +372,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInpu
 		)
 
 		values := buildUpdateValues(
-			field.Deleted,
 			field.Description,
-			field.Enabled,
 			field.ModifiedBy,
 			field.ModifiedOn,
 			field.Status,
@@ -433,9 +417,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInpu
 	if err := r.db.QueryRow(
 		ctx,
 		query,
-		requestData.Deleted,
 		description,
-		requestData.Enabled,
 		modifiedBy,
 		modifiedOn,
 		status,
@@ -452,7 +434,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInpu
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 

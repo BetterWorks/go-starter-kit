@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/BetterWorks/gosk-api/internal/core/interfaces"
-	"github.com/BetterWorks/gosk-api/internal/core/validation"
+	"github.com/BetterWorks/go-starter-kit/internal/core/app"
+	"github.com/BetterWorks/go-starter-kit/internal/core/interfaces"
 )
 
 // Domain is the top-level container for the application domain layer
@@ -10,14 +10,14 @@ type Domain struct {
 	Services *Services
 }
 
-// Services contains all individual resource services
+// Services contains all individual domain services
 type Services struct {
-	Example interfaces.Service
+	Example interfaces.ExampleService `validate:"required"`
 }
 
 // NewDomain creates a new Domain instance
 func NewDomain(s *Services) (*Domain, error) {
-	if err := validation.Validate.Struct(s); err != nil {
+	if err := app.Validator.Validate.Struct(s); err != nil {
 		return nil, err
 	}
 

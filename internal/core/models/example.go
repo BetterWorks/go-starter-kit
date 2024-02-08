@@ -3,19 +3,29 @@ package models
 import (
 	"time"
 
-	"github.com/BetterWorks/gosk-api/internal/core/jsonapi"
-	"github.com/BetterWorks/gosk-api/internal/core/pagination"
+	"github.com/BetterWorks/go-starter-kit/internal/core/jsonapi"
+	"github.com/BetterWorks/go-starter-kit/internal/core/pagination"
 	"github.com/google/uuid"
+	v "github.com/invopop/validation"
 )
 
-// ExampleInputData defines the subset of Example domain model attributes that are accepted
+// ExampleDTO defines the subset of Example domain model attributes that are accepted
 // for input data request binding
-type ExampleInputData struct {
-	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
-	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
-	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
-	Status      *uint32 `json:"status" validate:"omitempty,numeric"`
-	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
+type ExampleDTO struct {
+	Description *string `json:"description"`
+	Status      *uint32 `json:"status"`
+	Title       string  `json:"title"`
+}
+
+// Validate validates a Notification instance
+func (e ExampleDTO) Validate() error {
+	if err := v.ValidateStruct(&e,
+		v.Field(&e.Title, v.Required),
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ExampleDomainModel an Example domain model that contains one or more ExampleObject(s)
@@ -59,7 +69,7 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 	}
 
 	meta := &jsonapi.ResponseMetadata{
-		Paging: pagination.PageMetadata{
+		Page: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,
