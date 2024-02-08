@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/BetterWorks/go-starter-kit/internal/core/jsonapi"
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
 	"github.com/BetterWorks/go-starter-kit/internal/http/jsonio"
 	"github.com/go-chi/chi/v5"
 )
@@ -19,9 +19,9 @@ func BaseRouter(r *chi.Mux, ns string) {
 		path := r.URL.Path
 		remoteAddress := r.RemoteAddr
 
-		data := jsonapi.Envelope{
+		data := models.Envelope{
 			"data": "base router is working...",
-			"request": jsonapi.Envelope{
+			"request": models.Envelope{
 				"headers":       headers,
 				"host":          host,
 				"path":          path,

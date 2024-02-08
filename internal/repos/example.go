@@ -83,7 +83,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleRequestAttributes) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -359,7 +359,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleRequestAttributes, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 

@@ -2,7 +2,6 @@ package domain
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/BetterWorks/go-starter-kit/internal/core/app"
 	"github.com/BetterWorks/go-starter-kit/internal/core/interfaces"
@@ -40,18 +39,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (*models.ExampleDomainModel, error) {
+func (s *exampleService) Create(ctx context.Context, data *models.ExampleRequestAttributes) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleDTO)
-	if !ok {
-		err := fmt.Errorf("example input data assertion error")
-		log.Error(err.Error())
-		return nil, err
-	}
-
-	model, err := s.repo.Create(ctx, d)
+	model, err := s.repo.Create(ctx, data)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -102,18 +94,11 @@ func (s *exampleService) List(ctx context.Context, q query.QueryData) (*models.E
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (s *exampleService) Update(ctx context.Context, data *models.ExampleRequestAttributes, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleDTO)
-	if !ok {
-		err := fmt.Errorf("example input data assertion error")
-		log.Error(err.Error())
-		return nil, err
-	}
-
-	model, err := s.repo.Update(ctx, d, id)
+	model, err := s.repo.Update(ctx, data, id)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err

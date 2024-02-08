@@ -6,7 +6,6 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/core/app"
 	"github.com/BetterWorks/go-starter-kit/internal/core/cerror"
 	"github.com/BetterWorks/go-starter-kit/internal/core/interfaces"
-	"github.com/BetterWorks/go-starter-kit/internal/core/jsonapi"
 	"github.com/BetterWorks/go-starter-kit/internal/core/logger"
 	"github.com/BetterWorks/go-starter-kit/internal/core/models"
 	"github.com/BetterWorks/go-starter-kit/internal/core/trace"
@@ -55,9 +54,9 @@ func (c *ExampleController) Create() http.HandlerFunc {
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
 
-		body := &jsonapi.RequestBody{
-			Data: &jsonapi.RequestResource{
-				Attributes: &models.ExampleDTO{},
+		body := &models.ExampleRequest{
+			Data: &models.ExampleRequestResource{
+				Attributes: models.ExampleRequestAttributes{},
 			},
 		}
 
@@ -68,7 +67,7 @@ func (c *ExampleController) Create() http.HandlerFunc {
 			return
 		}
 
-		data := body.Data.Attributes
+		data := &body.Data.Attributes
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error(err.Error())
@@ -194,9 +193,9 @@ func (c *ExampleController) Update() http.HandlerFunc {
 			return
 		}
 
-		resource := &jsonapi.RequestBody{
-			Data: &jsonapi.RequestResource{
-				Attributes: &models.ExampleDTO{},
+		resource := &models.ExampleRequest{
+			Data: &models.ExampleRequestResource{
+				Attributes: models.ExampleRequestAttributes{},
 			},
 		}
 
@@ -207,7 +206,7 @@ func (c *ExampleController) Update() http.HandlerFunc {
 			return
 		}
 
-		data := resource.Data.Attributes
+		data := &resource.Data.Attributes
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error(err.Error())

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	cerror "github.com/BetterWorks/go-starter-kit/internal/core/cerror"
-	"github.com/BetterWorks/go-starter-kit/internal/core/jsonapi"
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
 	"github.com/invopop/validation"
 )
 
@@ -24,7 +24,7 @@ var HTTPStatusMap = map[string]int{
 func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		code     = http.StatusInternalServerError
-		response jsonapi.ErrorResponse
+		response models.ErrorResponse
 	)
 
 	switch e := err.(type) {
@@ -38,42 +38,42 @@ func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
 	EncodeResponse(w, r, code, response)
 }
 
-func defaultErrorData() jsonapi.ErrorData {
-	return jsonapi.ErrorData{
+func defaultErrorData() models.ErrorData {
+	return models.ErrorData{
 		Status: http.StatusInternalServerError,
 		Title:  cerror.ErrorType.InternalServer,
 		Detail: "internal server error",
 	}
 }
 
-func defaultValidationErrorData(e cerror.CustomError) jsonapi.ErrorData {
+func defaultValidationErrorData(e cerror.CustomError) models.ErrorData {
 	detail := "validation error"
 	if e.ErrorMessage() != "" {
 		detail = e.ErrorMessage()
 	}
 
-	return jsonapi.ErrorData{
+	return models.ErrorData{
 		Status: http.StatusBadRequest,
 		Title:  cerror.ErrorType.Validation,
 		Detail: detail,
 	}
 }
 
-func errorData(code int, detail, title string) jsonapi.ErrorData {
-	return jsonapi.ErrorData{
+func errorData(code int, detail, title string) models.ErrorData {
+	return models.ErrorData{
 		Status: code,
 		Title:  title,
 		Detail: detail,
 	}
 }
 
-func errorResponse(data jsonapi.ErrorData) jsonapi.ErrorResponse {
-	return jsonapi.ErrorResponse{
-		Errors: []jsonapi.ErrorData{data},
+func errorResponse(data models.ErrorData) models.ErrorResponse {
+	return models.ErrorResponse{
+		Errors: []models.ErrorData{data},
 	}
 }
 
-func handleCustomError(e cerror.CustomError) (int, jsonapi.ErrorResponse) {
+func handleCustomError(e cerror.CustomError) (int, models.ErrorResponse) {
 	code := HTTPStatusMap[e.Type()]
 
 	if e.Type() != cerror.ErrorType.Validation {
@@ -86,21 +86,21 @@ func handleCustomError(e cerror.CustomError) (int, jsonapi.ErrorResponse) {
 		verrors  validation.Errors
 	)
 	if errors.As(e, &verrors) {
-		response = validationErrorResponse("/", verrors, jsonapi.ErrorResponse{})
+		response = validationErrorResponse("/", verrors, models.ErrorResponse{})
 	}
 
 	return code, response
 }
 
-func validationErrorResponse(path string, ve validation.Errors, er jsonapi.ErrorResponse) jsonapi.ErrorResponse {
+func validationErrorResponse(path string, ve validation.Errors, er models.ErrorResponse) models.ErrorResponse {
 	for key, val := range ve {
 		path := fmt.Sprintf("%s%s", path, key)
 
 		switch v := val.(type) {
 		case validation.Error:
-			er.Errors = append(er.Errors, jsonapi.ErrorData{
+			er.Errors = append(er.Errors, models.ErrorData{
 				Status: http.StatusBadRequest,
-				Source: &jsonapi.ErrorSource{Pointer: path},
+				Source: &models.ErrorSource{Pointer: path},
 				Title:  cerror.ErrorType.Validation,
 				Detail: v.Error(),
 			})
