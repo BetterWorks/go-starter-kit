@@ -8,7 +8,7 @@ The following procedure is intended to help you quickly customize this starter k
 3. Ensure you can successfully run the app for local development and test coverage. See the [Development](../README.md#development) section of the [README](../README.md) for further instructions.
 
 ### Ports
-4. Choose a unique service port for the HTTP server to avoid collisions with other service port bindings on the host machine. Replace `9202` with your unique service port in the following files:
+4. Choose a unique service port for the HTTP server to avoid collisions with other service port bindings on the host machine. Replace `9000` with your unique service port in the following files:
   - `/config/config.toml`
   - `/docker-compose.yml`
   - `/Dockerfile`
@@ -19,7 +19,7 @@ The following procedure is intended to help you quickly customize this starter k
 ### App Name
 7. Choose a name for the app. This will be referred to as `{appname}` in the rest of this guide.
 8. Update the go module file and all import paths:
-  - Find all occurrences of `github.com/BetterWorks/gosk-api` and replace with `github.com/BetterWorks/{appname}`
+  - Find all occurrences of `github.com/BetterWorks/go-starter-kit` and replace with `github.com/BetterWorks/{appname}`
   - Delete `/go.sum`
   - Run `go mod tidy && go mod vendor`
 9. Update the `/package.json` `name` field to `{appname}`.
