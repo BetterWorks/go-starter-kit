@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/BetterWorks/gosk-api/internal/core/entities"
+	"github.com/BetterWorks/go-starter-kit/internal/core/entities"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
