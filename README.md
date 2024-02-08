@@ -9,7 +9,7 @@ Go Starter Kit for Betterworks Server Applications
 Clone the repository
 ```sh
 $ git clone git@github.com:BetterWorks/go-starter-kit.git
-$ cd gosk-api
+$ cd go-starter-kit
 ```
 
 ## Development
