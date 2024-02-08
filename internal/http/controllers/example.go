@@ -68,6 +68,13 @@ func (c *ExampleController) Create() http.HandlerFunc {
 		}
 
 		data := &body.Data.Attributes
+		if err := data.Validate(); err != nil {
+			err = cerror.NewValidationError(err, "invalid request body")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error(err.Error())
@@ -193,20 +200,27 @@ func (c *ExampleController) Update() http.HandlerFunc {
 			return
 		}
 
-		resource := &models.ExampleRequest{
+		body := &models.ExampleRequest{
 			Data: &models.ExampleRequestResource{
 				Attributes: models.ExampleRequestAttributes{},
 			},
 		}
 
-		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
+		if err := jsonio.DecodeRequest(w, r, body); err != nil {
 			err = cerror.NewValidationError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		data := &resource.Data.Attributes
+		data := &body.Data.Attributes
+		if err := data.Validate(); err != nil {
+			err = cerror.NewValidationError(err, "invalid request body")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error(err.Error())
