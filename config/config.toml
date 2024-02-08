@@ -1,46 +1,11 @@
-# default configuration
+# configuration file
+# config defined here can be used to update runtime configuration without the need for app restart
+# NOTE: for a given config key, if a bound environment variable exists, changes here will have no effect on its value
 
-[external.services.example]
-baseURL = "http://www.google.com"
-timeout = 25000
-
-[http.api.paging]
-defaultLimit = 20
-defaultOffset = 0
-
-[http.api.sorting]
-defaultAttr = "created_on"
-defaultOrder = "desc"
-
-[http.server]
-baseURL = "localhost"
-mode = "debug"
-namespace = "domain"
-port = 9202
-version = 1
-
-[logger.app]
+[logger]
 enabled = true
 level = "info"
-
-[logger.domain]
-enabled = false
-level = "info"
-
-[logger.http]
-enabled = true
-level = "info"
-
-[logger.repo]
-enabled = true
-level = "info"
+verbose = true
 
 [metadata]
-path = "/app/package.json"
-
-[postgres]
-database = "svcdb"
-host = "localhost"
-password = "postgres"
-port = 5432
-user = "postgres"
+environment = "development"
