@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/BetterWorks/gosk-api/internal/http/httpserver"
-	"github.com/BetterWorks/gosk-api/internal/resolver"
+	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/BetterWorks/gosk-api/internal/runtime"
+	"github.com/BetterWorks/go-starter-kit/internal/runtime"
 )
 
 func main() {

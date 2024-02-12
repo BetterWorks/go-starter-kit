@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/BetterWorks/gosk-api/internal/core/models"
-	"github.com/BetterWorks/gosk-api/internal/core/pagination"
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/core/pagination"
 	"github.com/google/uuid"
 )
 

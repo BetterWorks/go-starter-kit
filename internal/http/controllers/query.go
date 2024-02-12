@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"github.com/BetterWorks/gosk-api/internal/core/query"
+	"github.com/BetterWorks/go-starter-kit/internal/core/app"
+	"github.com/BetterWorks/go-starter-kit/internal/core/query"
 	"github.com/hetiansu5/urlquery"
 )
 
 type QueryConfig struct {
-	Defaults *QueryDefaults
+	Defaults *QueryDefaults `validate:"required"`
 }
 
 type QueryDefaults struct {
@@ -18,10 +19,21 @@ type queryHandler struct {
 	defaults *QueryDefaults
 }
 
-func NewQueryHandler(c *QueryConfig) *queryHandler {
-	return &queryHandler{
+func NewQueryHandler(c *QueryConfig) (*queryHandler, error) {
+	if err := app.Validator.Validate.Struct(c); err != nil {
+		return nil, err
+	}
+
+	if c.Defaults.Paging.Offset == nil {
+		offset := 0
+		c.Defaults.Paging.Offset = &offset
+	}
+
+	handler := &queryHandler{
 		defaults: c.Defaults,
 	}
+
+	return handler, nil
 }
 
 func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {
@@ -29,7 +41,7 @@ func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {
 
 	// TODO: validate query
 	urlquery.Unmarshal(qs, data)
-	// if err := validation.Validate.Struct(data); err != nil {
+	// if err := app.Validator.Validate.Struct(data); err != nil {
 	// 	return nil, err
 	// }
 	data.Paging = q.pageSettings(data.Paging)

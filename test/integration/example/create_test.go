@@ -6,8 +6,8 @@ package exampletest
 // 	"testing"
 
 // 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/gosk-api/internal/resolver"
-// 	utils "github.com/BetterWorks/gosk-api/test/testutils"
+// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
 // 	"github.com/stretchr/testify/suite"
 // )
 

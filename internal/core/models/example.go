@@ -3,20 +3,56 @@ package models
 import (
 	"time"
 
-	"github.com/BetterWorks/gosk-api/internal/core/jsonapi"
-	"github.com/BetterWorks/gosk-api/internal/core/pagination"
+	"github.com/BetterWorks/go-starter-kit/internal/core/pagination"
 	"github.com/google/uuid"
+	v "github.com/invopop/validation"
 )
 
-// ExampleInputData defines the subset of Example domain model attributes that are accepted
-// for input data request binding
-type ExampleInputData struct {
-	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
-	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
-	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
-	Status      *uint32 `json:"status" validate:"omitempty,numeric"`
-	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
+// ExampleRequest
+type ExampleRequest struct {
+	Data *ExampleRequestResource `json:"data" validate:"required"`
 }
+
+// ExampleRequestResource
+type ExampleRequestResource struct {
+	Type       string                   `json:"type" validate:"required"`
+	ID         string                   `json:"id" validate:"omitempty,uuid4"`
+	Attributes ExampleRequestAttributes `json:"attributes" validate:"required"`
+}
+
+// ExampleRequestAttributes defines the subset of Example domain model attributes that are accepted
+// for input data request binding
+type ExampleRequestAttributes struct {
+	Description *string `json:"description"`
+	Status      *uint32 `json:"status"`
+	Title       string  `json:"title"`
+}
+
+// Validate validates a Notification instance
+func (e ExampleRequestAttributes) Validate() error {
+	if err := v.ValidateStruct(&e,
+		v.Field(&e.Title, v.Required),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ------------------------------------------------------------------------------------------------
+
+// ExampleResponseResource
+type ExampleResponseResource struct {
+	Type       string                   `json:"type"`
+	ID         uuid.UUID                `json:"id"`
+	Meta       *ExampleResourceMetadata `json:"meta,omitempty"`
+	Attributes ExampleObjectAttributes  `json:"attributes"`
+}
+
+// ExampleResourceMetadata
+type ExampleResourceMetadata struct{}
+
+// ------------------------------------------------------------------------------------------------
 
 // ExampleDomainModel an Example domain model that contains one or more ExampleObject(s)
 // and related metadata
@@ -51,27 +87,27 @@ type ExampleObjectAttributes struct {
 	ModifiedBy  *uint32    `json:"modified_by"`
 }
 
-func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
+func (m *ExampleDomainModel) FormatResponse() (*Response, error) {
 	if m.Solo {
 		resource := formatResource(&m.Data[0])
-		response := &jsonapi.Response{Data: resource}
+		response := &Response{Data: resource}
 		return response, nil
 	}
 
-	meta := &jsonapi.ResponseMetadata{
-		Paging: pagination.PageMetadata{
+	meta := &ResponseMetadata{
+		Page: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,
 		},
 	}
 
-	data := make([]jsonapi.ResponseResource, 0, len(m.Data))
+	data := make([]ExampleResponseResource, 0, len(m.Data))
 	for _, domo := range m.Data {
 		resource := formatResource(&domo)
 		data = append(data, resource)
 	}
-	response := &jsonapi.Response{
+	response := &Response{
 		Meta: meta,
 		Data: data,
 	}
@@ -80,8 +116,8 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 }
 
 // serializeResource
-func formatResource(domo *ExampleObject) jsonapi.ResponseResource {
-	return jsonapi.ResponseResource{
+func formatResource(domo *ExampleObject) ExampleResponseResource {
+	return ExampleResponseResource{
 		Type: "example", // TODO
 		ID:   domo.Attributes.ID,
 		// Meta: domo.Meta,

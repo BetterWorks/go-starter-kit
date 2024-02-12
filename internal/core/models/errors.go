@@ -1,4 +1,4 @@
-package jsonapi
+package models
 
 // ErrorResponse
 type ErrorResponse struct {

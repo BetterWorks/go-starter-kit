@@ -3,13 +3,28 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/BetterWorks/gosk-api/internal/core/trace"
+	"github.com/BetterWorks/go-starter-kit/internal/core/trace"
 	"github.com/google/uuid"
 )
 
+// CorrelationConfig
+type CorrelationConfig struct {
+	// ContextKey for storing correlation data in context locals
+	ContextKey trace.ContextKey
+
+	// Generator defines a function to generate request identifier
+	Generator func() string
+
+	// Header key for trace ID get/set
+	Header string
+
+	// Next defines a function to skip this middleware on return true
+	Next func(r *http.Request) bool
+}
+
 // Correlation
-func Correlation(config *CorrelationConfig) func(http.Handler) http.Handler {
-	conf := setCorrelationConfig(config)
+func Correlation(c *CorrelationConfig) func(http.Handler) http.Handler {
+	conf := setCorrelationConfig(c)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -34,22 +49,6 @@ func Correlation(config *CorrelationConfig) func(http.Handler) http.Handler {
 	}
 }
 
-// CorrelationConfig
-type CorrelationConfig struct {
-	// ContextKey for storing correlation data in context locals
-	ContextKey trace.ContextKey
-
-	// Generator defines a function to generate request identifier
-	Generator func() string
-
-	// Header key for trace ID get/set
-	Header string
-
-	// Next defines a function to skip this middleware on return true
-	Next func(r *http.Request) bool
-}
-
-// setCorrelationConfig sets default CorrelationConfig values and CorrelationContextKey
 func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
 	// default config
 	var conf = &CorrelationConfig{

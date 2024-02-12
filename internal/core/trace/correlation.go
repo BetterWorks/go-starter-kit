@@ -4,7 +4,7 @@ import "context"
 
 // Correlation
 type Correlation struct {
-	Headers map[string][]string
+	Header  map[string][]string
 	TraceID ContextKey // TODO: consider uuid.UUID
 }
 

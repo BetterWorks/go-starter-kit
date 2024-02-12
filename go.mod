@@ -1,14 +1,16 @@
-module github.com/BetterWorks/gosk-api
+module github.com/BetterWorks/go-starter-kit
 
-go 1.20
+go 1.21
 
 require (
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/goddtriffin/helmet v1.0.2
 	github.com/google/uuid v1.3.0
 	github.com/hetiansu5/urlquery v1.2.7
+	github.com/invopop/validation v0.3.0
 	github.com/jackc/pgx/v5 v5.3.0
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
@@ -16,7 +18,6 @@ require (
 )
 
 require (
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

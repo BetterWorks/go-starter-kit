@@ -3,13 +3,14 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/BetterWorks/gosk-api/config"
-	"github.com/BetterWorks/gosk-api/internal/core/interfaces"
-	"github.com/BetterWorks/gosk-api/internal/domain"
-	"github.com/BetterWorks/gosk-api/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/config"
+	"github.com/BetterWorks/go-starter-kit/internal/core/app"
+	"github.com/BetterWorks/go-starter-kit/internal/core/interfaces"
+	"github.com/BetterWorks/go-starter-kit/internal/domain"
+	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rs/zerolog"
 )
 
 // Application metadata
@@ -23,10 +24,10 @@ type Config struct {
 	Config           *config.Configuration
 	Domain           *domain.Domain
 	ExampleRepo      interfaces.ExampleRepository
-	ExampleService   interfaces.Service
+	ExampleService   interfaces.ExampleService
 	HTTPServer       *httpserver.Server
-	Log              *zerolog.Logger
-	Metadata         *Metadata
+	Log              *slog.Logger
+	Metadata         *app.Metadata
 	PostgreSQLClient *pgxpool.Pool
 }
 
@@ -36,10 +37,10 @@ type Resolver struct {
 	config           *config.Configuration
 	domain           *domain.Domain
 	exampleRepo      interfaces.ExampleRepository
-	exampleService   interfaces.Service
+	exampleService   interfaces.ExampleService
 	httpServer       *httpserver.Server
-	log              *zerolog.Logger
-	metadata         *Metadata
+	log              *slog.Logger
+	metadata         *app.Metadata
 	postgreSQLClient *pgxpool.Pool
 }
 

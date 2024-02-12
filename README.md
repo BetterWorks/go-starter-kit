@@ -1,4 +1,4 @@
-# gosk-api
+# go-starter-kit
 Go Starter Kit for Betterworks Server Applications
 
 ## Documentation
@@ -8,8 +8,8 @@ Go Starter Kit for Betterworks Server Applications
 ## Installation
 Clone the repository
 ```sh
-$ git clone git@github.com:BetterWorks/gosk-api.git
-$ cd gosk-api
+$ git clone git@github.com:BetterWorks/go-starter-kit.git
+$ cd go-starter-kit
 ```
 
 ## Development
@@ -69,4 +69,4 @@ $ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 1. Create new pull request
 
 ## License
-Copyright (c) 2022 Jason Sites
+UNLICENSED
