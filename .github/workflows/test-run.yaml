@@ -32,4 +32,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          file: ./test/coverage/coverage.out
+          file: ./test/coverage/profile.cov
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.10.0
+        with:
+          files: test/coverage/junit.xml

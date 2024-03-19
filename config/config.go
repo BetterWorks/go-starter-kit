@@ -14,6 +14,7 @@ type Configuration struct {
 	External External `validate:"required"`
 	HTTP     HTTP     `validate:"required"`
 	Logger   Logger   `validate:"required"`
+	Flags    Flags    `validate:"required"`
 	Metadata Metadata `validate:"required"`
 	Postgres Postgres `validate:"required"`
 }
@@ -24,6 +25,11 @@ type External struct {
 		Host    string
 		Timeout uint
 	}
+}
+
+// Flags defines the feature flagging configuration
+type Flags struct {
+	SDKKey string `validate:"required"`
 }
 
 // HTTP defines HTTP Server configuration
@@ -83,6 +89,7 @@ func LoadConfiguration() (*Configuration, error) {
 	// default values
 	viper.SetDefault("external.example.baseURL", "http://www.example.com")
 	viper.SetDefault("external.example.timeout", 25000)
+	viper.SetDefault("flags.sdkkey", "sdk-b8b83352-4a53-4450-9605-60a2dd4e570e")
 	viper.SetDefault("http.router.namespace", "domain")
 	viper.SetDefault("http.router.paging.defaultLimit", 20)
 	viper.SetDefault("http.router.sorting.defaultAttr", "created_on")
