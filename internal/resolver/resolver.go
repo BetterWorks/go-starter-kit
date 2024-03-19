@@ -11,6 +11,7 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/domain"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/jackc/pgx/v5/pgxpool"
+	ld "github.com/launchdarkly/go-server-sdk/v7"
 )
 
 // Application metadata
@@ -25,6 +26,7 @@ type Config struct {
 	Domain           *domain.Domain
 	ExampleRepo      interfaces.ExampleRepository
 	ExampleService   interfaces.ExampleService
+	FlagsClient      *ld.LDClient
 	HTTPServer       *httpserver.Server
 	Log              *slog.Logger
 	Metadata         *app.Metadata
@@ -38,6 +40,7 @@ type Resolver struct {
 	domain           *domain.Domain
 	exampleRepo      interfaces.ExampleRepository
 	exampleService   interfaces.ExampleService
+	flagsClient      *ld.LDClient
 	httpServer       *httpserver.Server
 	log              *slog.Logger
 	metadata         *app.Metadata
@@ -56,6 +59,7 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 		domain:           c.Domain,
 		exampleRepo:      c.ExampleRepo,
 		exampleService:   c.ExampleService,
+		flagsClient:      c.FlagsClient,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,

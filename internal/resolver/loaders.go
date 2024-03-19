@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/BetterWorks/go-starter-kit/config"
 	"github.com/BetterWorks/go-starter-kit/internal/core/app"
@@ -16,6 +17,8 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/BetterWorks/go-starter-kit/internal/repos"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	ld "github.com/launchdarkly/go-server-sdk/v7"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -110,6 +113,20 @@ func (r *Resolver) ExampleService() interfaces.ExampleService {
 	}
 
 	return r.exampleService
+}
+
+// TODO: probably need to add an interface so we can use the struct with the env.
+func (r *Resolver) FlagsClient() *ld.LDClient {
+	if r.flagsClient == nil {
+		client, err := ld.MakeClient(r.Config().Flags.SDKKey, 5*time.Second)
+		if err != nil {
+			err = fmt.Errorf("feature flags client load error: %w", err)
+			slog.Error(err.Error())
+			panic(err)
+		}
+		r.flagsClient = client
+	}
+	return r.flagsClient
 }
 
 // HTTPServer provides a singleton httpserver.Server instance

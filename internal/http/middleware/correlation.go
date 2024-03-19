@@ -68,6 +68,9 @@ func setCorrelationConfig(c *CorrelationConfig) *CorrelationConfig {
 	if c.Header != "" {
 		conf.Header = c.Header
 	}
+	if c.Next != nil {
+		conf.Next = c.Next
+	}
 
 	return conf
 }
