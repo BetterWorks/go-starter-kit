@@ -12,7 +12,8 @@ import (
 // Configuration defines application configuration
 type Configuration struct {
 	External External `validate:"required"`
-	HTTP     HTTP     `validate:"required"`
+	HTTP     HTTP
+	Lambda   Lambda
 	Logger   Logger   `validate:"required"`
 	Flags    Flags    `validate:"required"`
 	Metadata Metadata `validate:"required"`
@@ -50,6 +51,10 @@ type HTTP struct {
 	} `validate:"required"`
 }
 
+type Lambda struct {
+	LogLevel string `validate:"oneof=debug info warn error"`
+}
+
 // Logger defines the primary logger configuration
 type Logger struct {
 	Enabled bool
@@ -62,6 +67,7 @@ type Metadata struct {
 	Environment string `validate:"oneof=development production"`
 	Name        string
 	Version     string
+	Mode        string `validate:"required,oneof=http lambda"`
 }
 
 // Postgres defines the postgres connection parameters
@@ -96,6 +102,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("http.router.sorting.defaultOrder", "desc")
 	viper.SetDefault("http.server.host", "localhost")
 	viper.SetDefault("http.server.port", 9000)
+	viper.SetDefault("lambda.logLevel", "debug")
 	viper.SetDefault("logger.enabled", true)
 	viper.SetDefault("logger.level", "info")
 	viper.SetDefault("logger.verbose", false)
@@ -105,6 +112,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("postgres.password", "postgres")
 	viper.SetDefault("postgres.port", 5432)
 	viper.SetDefault("postgres.user", "postgres")
+	viper.SetDefault("metadata.mode", "http")
 
 	// environment variables
 	viper.BindEnv("http.server.host", "HTTP_SERVER_HOST")
@@ -119,6 +127,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
 	viper.BindEnv("postgres.port", "POSTGRES_PORT")
 	viper.BindEnv("postgres.user", "POSTGRES_USER")
+	viper.BindEnv("metadata.mode", "APP_MODE")
 
 	// read, unmarshal, and validate configuration
 	if err := viper.ReadInConfig(); err != nil {

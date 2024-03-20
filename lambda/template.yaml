@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  LambdaExampleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../cmd/lambda # folder where your main program resides
+      Handler: lambda
+      Runtime: provided.al2023
+      Architectures: [arm64]
+      Environment:
+        Variables:
+          APP_MODE: lambda

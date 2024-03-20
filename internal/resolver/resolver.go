@@ -70,10 +70,8 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 }
 
 // LoadEntries provides option strings for loading the resolver from various entry nodes
-// in the app component graph (cli, grpc, http)
-var LoadEntries = struct{ HTTPServer string }{
-	HTTPServer: "http",
-}
+// in the app component graph (cli, http, lambda)
+var LoadEntries = struct{ HTTPServer string }{HTTPServer: "http"}
 
 // Load resolves app components starting from the given entry node of the component graph
 func (r *Resolver) Load(entry string) {

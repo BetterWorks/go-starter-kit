@@ -44,6 +44,9 @@ go.work
 # AWS User-specific
 .idea/**/aws.xml
 
+# AWS Lambda
+.aws-sam
+
 # Generated files
 .idea/**/contentModel.xml
 

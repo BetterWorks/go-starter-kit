@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/aws/aws-lambda-go v1.46.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20171119193500-2bcd89a1743f // indirect

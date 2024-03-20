@@ -22,6 +22,9 @@ WORKDIR /app
 COPY --from=build /src/package.json /src/config/config.toml /src/bin/server /app/
 COPY --from=build /src/database/migrations /app/database/migrations
 
+# Set the mode for the application to run in HTTP mode when deployed with Docker
+ENV APP_MODE=http
+
 ENV MIGRATE_VERSION=v4.15.2
 RUN apk --no-cache add curl \
     # migrate

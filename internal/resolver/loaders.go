@@ -2,8 +2,10 @@ package resolver
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/http/controllers"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/BetterWorks/go-starter-kit/internal/repos"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	ld "github.com/launchdarkly/go-server-sdk/v7"
@@ -183,6 +186,47 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 	return r.httpServer
 }
 
+type LambdaEvent struct {
+	EventType string `json:"event_type"`
+}
+
+func (r *Resolver) BaseLambdaHandler(e LambdaEvent) (events.APIGatewayProxyResponse, error) {
+	c := r.Config()
+
+	log := r.Log().With(slog.String("tags", "lambda"))
+	cLogger := &logger.CustomLogger{
+		Enabled: c.Logger.Enabled,
+		Level:   c.Logger.Level,
+		Log:     log,
+	}
+
+	switch e.EventType {
+	case "example":
+		return exampleLambdaHandler(cLogger)
+	default:
+		return UnhandledMethod()
+	}
+}
+
+func exampleLambdaHandler(logger *logger.CustomLogger) (events.APIGatewayProxyResponse, error) {
+
+	logger.Log.Info("example lambda handler with custom logger")
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       "Hello, World!",
+	}, nil
+}
+
+func UnhandledMethod() (events.APIGatewayProxyResponse, error) {
+	var errorMethodNotAllowed = http.StatusText(http.StatusMethodNotAllowed)
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusMethodNotAllowed,
+		Body:       errorMethodNotAllowed,
+	}, errors.New(errorMethodNotAllowed)
+}
+
 // Log provides a singleton slog.Logger instance
 func (r *Resolver) Log() *slog.Logger {
 	if r.log == nil {
@@ -221,8 +265,22 @@ func (r *Resolver) Log() *slog.Logger {
 func (r *Resolver) Metadata() *app.Metadata {
 	if r.metadata == nil {
 		var metadata app.Metadata
+		var jsonPath string
 
-		jsondata, err := os.ReadFile("/app/package.json")
+		switch r.Config().Metadata.Mode {
+		case "http":
+			// Path when running in Docker
+			jsonPath = "/app/package.json"
+		case "lambda":
+			// Path when running in AWS Lambda
+			jsonPath = "./package.json"
+		default:
+			err := fmt.Errorf("invalid application mode: %s", r.Config().Metadata.Mode)
+			slog.Error(err.Error())
+			panic(err)
+		}
+
+		jsondata, err := os.ReadFile(jsonPath)
 		if err != nil {
 			err = fmt.Errorf("package.json read error: %w", err)
 			slog.Error(err.Error())
@@ -230,7 +288,7 @@ func (r *Resolver) Metadata() *app.Metadata {
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			err = fmt.Errorf("package.json unmarshall error: %w", err)
+			err = fmt.Errorf("package.json unmarshal error: %w", err)
 			slog.Error(err.Error())
 			panic(err)
 		}

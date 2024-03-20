@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -27,6 +28,7 @@ func NewRuntime(c *resolver.Config) *Runtime {
 // WARNING: only one option should be enabled per build/process
 type RunConfig struct {
 	HTTPServer bool
+	Lambda     bool
 }
 
 // Run creates a new Resolver with associated context group, then runs goroutines for bootstrapping
@@ -43,7 +45,7 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 	// load resolver app components and start the configured application
 	g.Go(func() error {
 		if conf.HTTPServer {
-			log.Info().Msg("loading resolver app components")
+			log.Info().Msg("loading resolver app components for http server")
 			r.Load(resolver.LoadEntries.HTTPServer)
 
 			log.Info().Msg("starting http server")
@@ -51,6 +53,13 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 			if err := server.Serve(); err != nil {
 				return err
 			}
+		}
+		if conf.Lambda {
+			log.Info().Msg("loading resolver app components for lambda")
+			baseHandler := r.BaseLambdaHandler
+
+			log.Info().Msg("starting lambda")
+			lambda.Start(baseHandler)
 		}
 
 		return nil
@@ -68,6 +77,9 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 				return err
 			}
 			log.Info().Msg("http server shut down")
+		}
+		if conf.Lambda {
+			log.Info().Msg("lambda finished")
 		}
 
 		pool := r.PostgreSQLClient()

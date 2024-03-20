@@ -4,6 +4,7 @@ Go Starter Kit for Betterworks Server Applications
 ## Documentation
 - [Architecture](./documentation/architecture.md)
 - [Getting Started](./documentation/getting-started.md)
+- [AWS Lambda](./documentation/working-with-lambda.md)
 
 ## Installation
 Clone the repository
@@ -16,6 +17,7 @@ $ cd go-starter-kit
 **Prerequisites**
 - *[Docker Desktop](https://www.docker.com/products/docker-desktop)*
 - *[Go 1.20+](https://golang.org/doc/install)*
+- *[AWS SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)*
 
 **Show all commands**
 ```sh
