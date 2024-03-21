@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
@@ -55,11 +54,12 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 			}
 		}
 		if conf.Lambda {
-			log.Info().Msg("loading resolver app components for lambda")
-			baseHandler := r.BaseLambdaHandler
+			log.Info().Msg("loading resolver app components for lambda service")
+			r.Load(resolver.LoadEntries.Lambda)
 
+			lambda := r.LambdaService()
 			log.Info().Msg("starting lambda")
-			lambda.Start(baseHandler)
+			lambda.Start()
 		}
 
 		return nil

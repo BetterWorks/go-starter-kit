@@ -10,6 +10,7 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/core/interfaces"
 	"github.com/BetterWorks/go-starter-kit/internal/domain"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/lambda"
 	"github.com/jackc/pgx/v5/pgxpool"
 	ld "github.com/launchdarkly/go-server-sdk/v7"
 )
@@ -28,6 +29,7 @@ type Config struct {
 	ExampleService   interfaces.ExampleService
 	FlagsClient      *ld.LDClient
 	HTTPServer       *httpserver.Server
+	LambdaService    *lambda.LambdaService
 	Log              *slog.Logger
 	Metadata         *app.Metadata
 	PostgreSQLClient *pgxpool.Pool
@@ -42,6 +44,7 @@ type Resolver struct {
 	exampleService   interfaces.ExampleService
 	flagsClient      *ld.LDClient
 	httpServer       *httpserver.Server
+	lambdaService    *lambda.LambdaService
 	log              *slog.Logger
 	metadata         *app.Metadata
 	postgreSQLClient *pgxpool.Pool
@@ -62,6 +65,7 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 		flagsClient:      c.FlagsClient,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
+		lambdaService:    c.LambdaService,
 		metadata:         c.Metadata,
 		postgreSQLClient: c.PostgreSQLClient,
 	}
@@ -71,13 +75,18 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 
 // LoadEntries provides option strings for loading the resolver from various entry nodes
 // in the app component graph (cli, http, lambda)
-var LoadEntries = struct{ HTTPServer string }{HTTPServer: "http"}
+var LoadEntries = struct {
+	HTTPServer string
+	Lambda     string
+}{HTTPServer: "http", Lambda: "lambda"}
 
 // Load resolves app components starting from the given entry node of the component graph
 func (r *Resolver) Load(entry string) {
 	switch entry {
 	case LoadEntries.HTTPServer:
 		r.HTTPServer()
+	case LoadEntries.Lambda:
+		r.LambdaService()
 	default:
 		panic(fmt.Errorf("invalid resolver load entry point '%s'", entry))
 	}

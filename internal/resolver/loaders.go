@@ -2,10 +2,8 @@ package resolver
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -17,8 +15,8 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/domain"
 	"github.com/BetterWorks/go-starter-kit/internal/http/controllers"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/lambda"
 	"github.com/BetterWorks/go-starter-kit/internal/repos"
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	ld "github.com/launchdarkly/go-server-sdk/v7"
@@ -186,45 +184,32 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 	return r.httpServer
 }
 
-type LambdaEvent struct {
-	EventType string `json:"event_type"`
-}
+func (r *Resolver) LambdaService() *lambda.LambdaService {
+	if r.lambdaService == nil {
+		c := r.Config()
 
-func (r *Resolver) BaseLambdaHandler(e LambdaEvent) (events.APIGatewayProxyResponse, error) {
-	c := r.Config()
+		log := r.Log().With(slog.String("tags", "lambda"))
+		cLogger := &logger.CustomLogger{
+			Enabled: c.Logger.Enabled,
+			Level:   c.Logger.Level,
+			Log:     log,
+		}
 
-	log := r.Log().With(slog.String("tags", "lambda"))
-	cLogger := &logger.CustomLogger{
-		Enabled: c.Logger.Enabled,
-		Level:   c.Logger.Level,
-		Log:     log,
+		lambdaConfig := &lambda.LambdaServiceConfig{
+			Logger: cLogger,
+		}
+
+		lambdaService, err := lambda.NewLambdaService(lambdaConfig)
+		if err != nil {
+			err = fmt.Errorf("lambda service load error: %w", err)
+			slog.Error(err.Error())
+			panic(err)
+		}
+
+		r.lambdaService = lambdaService
 	}
 
-	switch e.EventType {
-	case "example":
-		return exampleLambdaHandler(cLogger)
-	default:
-		return UnhandledMethod()
-	}
-}
-
-func exampleLambdaHandler(logger *logger.CustomLogger) (events.APIGatewayProxyResponse, error) {
-
-	logger.Log.Info("example lambda handler with custom logger")
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       "Hello, World!",
-	}, nil
-}
-
-func UnhandledMethod() (events.APIGatewayProxyResponse, error) {
-	var errorMethodNotAllowed = http.StatusText(http.StatusMethodNotAllowed)
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusMethodNotAllowed,
-		Body:       errorMethodNotAllowed,
-	}, errors.New(errorMethodNotAllowed)
+	return r.lambdaService
 }
 
 // Log provides a singleton slog.Logger instance

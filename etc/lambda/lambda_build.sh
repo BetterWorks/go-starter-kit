@@ -1,2 +1,2 @@
-sam build -t lambda/template.yaml
+sam build -t etc/lambda/template.yaml
 cp package.json .aws-sam/build/LambdaExampleFunction

@@ -31,7 +31,7 @@ jobs:
         uses: aws-actions/setup-sam@v1
         
       - name: Build Lambda Functions via AWS SAM
-        run: lambda/lambda_build.sh
+        run: etc/lambda/lambda_build.sh
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

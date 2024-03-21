@@ -11,13 +11,12 @@ import (
 
 // Configuration defines application configuration
 type Configuration struct {
-	External External `validate:"required"`
+	External External
 	HTTP     HTTP
-	Lambda   Lambda
-	Logger   Logger   `validate:"required"`
-	Flags    Flags    `validate:"required"`
+	Logger   Logger `validate:"required"`
+	Flags    Flags
 	Metadata Metadata `validate:"required"`
-	Postgres Postgres `validate:"required"`
+	Postgres Postgres
 }
 
 // External defines external service configuration
@@ -39,7 +38,7 @@ type HTTP struct {
 		Namespace string `validate:"required"`
 		Paging    struct {
 			DefaultLimit uint `validate:"required"`
-		}
+		} `validate:"required"`
 		Sorting struct {
 			DefaultAttr  string `validate:"required"`
 			DefaultOrder string `validate:"required"`
@@ -49,10 +48,6 @@ type HTTP struct {
 		Host string
 		Port uint `validate:"required,max=65535"`
 	} `validate:"required"`
-}
-
-type Lambda struct {
-	LogLevel string `validate:"oneof=debug info warn error"`
 }
 
 // Logger defines the primary logger configuration
@@ -102,7 +97,6 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("http.router.sorting.defaultOrder", "desc")
 	viper.SetDefault("http.server.host", "localhost")
 	viper.SetDefault("http.server.port", 9000)
-	viper.SetDefault("lambda.logLevel", "debug")
 	viper.SetDefault("logger.enabled", true)
 	viper.SetDefault("logger.level", "info")
 	viper.SetDefault("logger.verbose", false)
