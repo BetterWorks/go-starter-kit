@@ -11,12 +11,12 @@ import (
 
 // Configuration defines application configuration
 type Configuration struct {
-	External External `validate:"required"`
-	HTTP     HTTP     `validate:"required"`
-	Logger   Logger   `validate:"required"`
-	Flags    Flags    `validate:"required"`
+	External External
+	HTTP     HTTP
+	Logger   Logger `validate:"required"`
+	Flags    Flags
 	Metadata Metadata `validate:"required"`
-	Postgres Postgres `validate:"required"`
+	Postgres Postgres
 }
 
 // External defines external service configuration
@@ -38,7 +38,7 @@ type HTTP struct {
 		Namespace string `validate:"required"`
 		Paging    struct {
 			DefaultLimit uint `validate:"required"`
-		}
+		} `validate:"required"`
 		Sorting struct {
 			DefaultAttr  string `validate:"required"`
 			DefaultOrder string `validate:"required"`
@@ -62,6 +62,7 @@ type Metadata struct {
 	Environment string `validate:"oneof=development production"`
 	Name        string
 	Version     string
+	Mode        string `validate:"required,oneof=http lambda"`
 }
 
 // Postgres defines the postgres connection parameters
@@ -105,6 +106,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("postgres.password", "postgres")
 	viper.SetDefault("postgres.port", 5432)
 	viper.SetDefault("postgres.user", "postgres")
+	viper.SetDefault("metadata.mode", "http")
 
 	// environment variables
 	viper.BindEnv("http.server.host", "HTTP_SERVER_HOST")
@@ -119,6 +121,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
 	viper.BindEnv("postgres.port", "POSTGRES_PORT")
 	viper.BindEnv("postgres.user", "POSTGRES_USER")
+	viper.BindEnv("metadata.mode", "APP_MODE")
 
 	// read, unmarshal, and validate configuration
 	if err := viper.ReadInConfig(); err != nil {

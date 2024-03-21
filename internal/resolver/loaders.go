@@ -15,6 +15,7 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/domain"
 	"github.com/BetterWorks/go-starter-kit/internal/http/controllers"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/lambda"
 	"github.com/BetterWorks/go-starter-kit/internal/repos"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -183,6 +184,34 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 	return r.httpServer
 }
 
+func (r *Resolver) LambdaService() *lambda.LambdaService {
+	if r.lambdaService == nil {
+		c := r.Config()
+
+		log := r.Log().With(slog.String("tags", "lambda"))
+		cLogger := &logger.CustomLogger{
+			Enabled: c.Logger.Enabled,
+			Level:   c.Logger.Level,
+			Log:     log,
+		}
+
+		lambdaConfig := &lambda.LambdaServiceConfig{
+			Logger: cLogger,
+		}
+
+		lambdaService, err := lambda.NewLambdaService(lambdaConfig)
+		if err != nil {
+			err = fmt.Errorf("lambda service load error: %w", err)
+			slog.Error(err.Error())
+			panic(err)
+		}
+
+		r.lambdaService = lambdaService
+	}
+
+	return r.lambdaService
+}
+
 // Log provides a singleton slog.Logger instance
 func (r *Resolver) Log() *slog.Logger {
 	if r.log == nil {
@@ -221,8 +250,22 @@ func (r *Resolver) Log() *slog.Logger {
 func (r *Resolver) Metadata() *app.Metadata {
 	if r.metadata == nil {
 		var metadata app.Metadata
+		var jsonPath string
 
-		jsondata, err := os.ReadFile("/app/package.json")
+		switch r.Config().Metadata.Mode {
+		case "http":
+			// Path when running in Docker
+			jsonPath = "/app/package.json"
+		case "lambda":
+			// Path when running in AWS Lambda
+			jsonPath = "./package.json"
+		default:
+			err := fmt.Errorf("invalid application mode: %s", r.Config().Metadata.Mode)
+			slog.Error(err.Error())
+			panic(err)
+		}
+
+		jsondata, err := os.ReadFile(jsonPath)
 		if err != nil {
 			err = fmt.Errorf("package.json read error: %w", err)
 			slog.Error(err.Error())
@@ -230,7 +273,7 @@ func (r *Resolver) Metadata() *app.Metadata {
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			err = fmt.Errorf("package.json unmarshall error: %w", err)
+			err = fmt.Errorf("package.json unmarshal error: %w", err)
 			slog.Error(err.Error())
 			panic(err)
 		}

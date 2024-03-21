@@ -12,6 +12,9 @@ ENV SWAG_VERSION=1.16.2
 WORKDIR /app
 COPY go.* package.json ./
 
+# Set the mode for the application to run in HTTP mode when deployed with Docker
+ENV APP_MODE=http
+
 RUN \
     # just
     curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin \
