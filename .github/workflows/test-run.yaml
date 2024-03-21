@@ -20,12 +20,18 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-#      - uses: KengoTODA/actions-setup-docker-compose@main
-#        with:
-#          version: '1.29.2'
+      - uses: KengoTODA/actions-setup-docker-compose@main
+        with:
+          version: '1.29.2'
 
       - name: Build Image and Run Integration Tests
         run: docker compose run --rm api just coverage
+      
+      - name: Setup AWS SAM CLI
+        uses: aws-actions/setup-sam@v1
+        
+      - name: Build Lambda Functions via AWS SAM
+        run: lambda/lambda_build.sh
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
