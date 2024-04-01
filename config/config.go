@@ -131,7 +131,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.BindEnv("postgres.user", "POSTGRES_USER")
 	viper.BindEnv("metadata.mode", "APP_MODE")
 	viper.BindEnv("newrelic.enabled", "NEW_RELIC_ENABLED")
-	viper.BindEnv("newrelic.appname", "NEW_RELIC_APPNAME")
+	viper.BindEnv("newrelic.appname", "NEW_RELIC_APP_NAME")
 	viper.BindEnv("newrelic.licensekey", "NEW_RELIC_LICENSE_KEY")
 
 	// read, unmarshal, and validate configuration
