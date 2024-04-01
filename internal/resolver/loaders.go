@@ -18,6 +18,8 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/lambda"
 	"github.com/BetterWorks/go-starter-kit/internal/repos"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/nrslog"
+	"github.com/newrelic/go-agent/v3/newrelic"
 
 	ld "github.com/launchdarkly/go-server-sdk/v7"
 )
@@ -99,8 +101,9 @@ func (r *Resolver) ExampleService() interfaces.ExampleService {
 			Log:     log,
 		}
 		svcConfig := &domain.ExampleServiceConfig{
-			Logger: cLogger,
-			Repo:   r.ExampleRepository(),
+			Logger:         cLogger,
+			Repo:           r.ExampleRepository(),
+			NewRelicClient: r.NewRelicClient(),
 		}
 
 		svc, err := domain.NewExampleService(svcConfig)
@@ -234,7 +237,8 @@ func (r *Resolver) Log() *slog.Logger {
 		if c.Metadata.Environment == app.Env.Development {
 			handler = logger.NewDevHandler(*r.Metadata(), opts).WithAttrs(attrs)
 		} else {
-			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
+			// Bootstrap slog handler with NewRelic
+			handler = nrslog.JSONHandler(r.NewRelicClient(), os.Stdout, opts).WithAttrs(attrs)
 		}
 
 		logger := slog.New(handler)
@@ -286,6 +290,38 @@ func (r *Resolver) Metadata() *app.Metadata {
 	}
 
 	return r.metadata
+}
+
+// NewrelicClient prodivides a singleton application Newrelic instance
+func (r *Resolver) NewRelicClient() *newrelic.Application {
+	if r.newRelicClient == nil {
+		c := r.Config()
+
+		if c.NewRelic.Enabled {
+			nr, err := newrelic.NewApplication(
+				newrelic.ConfigAppName(c.NewRelic.AppName),
+				newrelic.ConfigLicense(c.NewRelic.LicenseKey),
+				newrelic.ConfigCodeLevelMetricsEnabled(true),
+				newrelic.ConfigAppLogEnabled(true),
+				newrelic.ConfigAppLogForwardingEnabled(true),
+				newrelic.ConfigAppLogDecoratingEnabled(true),
+				func(config *newrelic.Config) {
+					config.Enabled = true
+					config.CustomInsightsEvents.Enabled = true
+					config.CrossApplicationTracer.Enabled = true
+				},
+			)
+			if err != nil {
+				err = fmt.Errorf("newrelic load error: %w", err)
+				slog.Error(err.Error())
+				panic(err)
+			}
+
+			r.newRelicClient = nr
+		}
+	}
+
+	return r.newRelicClient
 }
 
 // PostgreSQLClient provides a singleton postgres pgxpool.Pool instance

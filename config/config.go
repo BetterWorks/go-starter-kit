@@ -16,6 +16,7 @@ type Configuration struct {
 	Logger   Logger `validate:"required"`
 	Flags    Flags
 	Metadata Metadata `validate:"required"`
+	NewRelic NewRelic
 	Postgres Postgres
 }
 
@@ -63,6 +64,13 @@ type Metadata struct {
 	Name        string
 	Version     string
 	Mode        string `validate:"required,oneof=http lambda"`
+}
+
+// NewRelic defines the New Relic configuration
+type NewRelic struct {
+	AppName    string
+	Enabled    bool
+	LicenseKey string
 }
 
 // Postgres defines the postgres connection parameters
@@ -122,6 +130,9 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.BindEnv("postgres.port", "POSTGRES_PORT")
 	viper.BindEnv("postgres.user", "POSTGRES_USER")
 	viper.BindEnv("metadata.mode", "APP_MODE")
+	viper.BindEnv("newrelic.enabled", "NEW_RELIC_ENABLED")
+	viper.BindEnv("newrelic.appname", "NEW_RELIC_APP_NAME")
+	viper.BindEnv("newrelic.licensekey", "NEW_RELIC_LICENSE_KEY")
 
 	// read, unmarshal, and validate configuration
 	if err := viper.ReadInConfig(); err != nil {
