@@ -13,6 +13,7 @@ import (
 	"github.com/BetterWorks/go-starter-kit/internal/lambda"
 	"github.com/jackc/pgx/v5/pgxpool"
 	ld "github.com/launchdarkly/go-server-sdk/v7"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 // Application metadata
@@ -32,6 +33,7 @@ type Config struct {
 	LambdaService    *lambda.LambdaService
 	Log              *slog.Logger
 	Metadata         *app.Metadata
+	NewRelicClient   *newrelic.Application
 	PostgreSQLClient *pgxpool.Pool
 }
 
@@ -47,6 +49,7 @@ type Resolver struct {
 	lambdaService    *lambda.LambdaService
 	log              *slog.Logger
 	metadata         *app.Metadata
+	newRelicClient   *newrelic.Application
 	postgreSQLClient *pgxpool.Pool
 }
 
@@ -67,6 +70,7 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 		log:              c.Log,
 		lambdaService:    c.LambdaService,
 		metadata:         c.Metadata,
+		newRelicClient:   c.NewRelicClient,
 		postgreSQLClient: c.PostgreSQLClient,
 	}
 
