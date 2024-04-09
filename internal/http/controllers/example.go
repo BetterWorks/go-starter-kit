@@ -18,7 +18,7 @@ import (
 type ExampleControllerConfig struct {
 	Logger      *logger.CustomLogger
 	QueryConfig *QueryConfig
-	Service     interfaces.ExampleService
+	Service     interfaces.ExampleService `validate:"required"`
 }
 
 // ExampleController
@@ -82,14 +82,7 @@ func (c *ExampleController) Create() http.HandlerFunc {
 			return
 		}
 
-		response, err := model.FormatResponse()
-		if err != nil {
-			err = cerror.NewInternalServerError(err, "model format response error")
-			log.Error(err.Error())
-			jsonio.EncodeError(w, r, err)
-			return
-		}
-
+		response := model.FormatResponse()
 		jsonio.EncodeResponse(w, r, http.StatusCreated, response)
 	}
 }
@@ -143,14 +136,7 @@ func (c *ExampleController) Detail() http.HandlerFunc {
 			return
 		}
 
-		response, err := model.FormatResponse()
-		if err != nil {
-			err = cerror.NewInternalServerError(err, "error formatting response from model")
-			log.Error(err.Error())
-			jsonio.EncodeError(w, r, err)
-			return
-		}
-
+		response := model.FormatResponse()
 		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
@@ -172,14 +158,7 @@ func (c *ExampleController) List() http.HandlerFunc {
 			return
 		}
 
-		response, err := model.FormatResponse()
-		if err != nil {
-			err = cerror.NewInternalServerError(err, "error formatting response from model")
-			log.Error(err.Error())
-			jsonio.EncodeError(w, r, err)
-			return
-		}
-
+		response := model.FormatResponse()
 		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
@@ -228,13 +207,7 @@ func (c *ExampleController) Update() http.HandlerFunc {
 			return
 		}
 
-		response, err := model.FormatResponse()
-		if err != nil {
-			err = cerror.NewInternalServerError(err, "model format response error")
-			log.Error(err.Error())
-			jsonio.EncodeError(w, r, err)
-			return
-		}
+		response := model.FormatResponse()
 
 		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}

@@ -87,11 +87,11 @@ type ExampleObjectAttributes struct {
 	ModifiedBy  *uint32    `json:"modified_by"`
 }
 
-func (m *ExampleDomainModel) FormatResponse() (*Response, error) {
+func (m *ExampleDomainModel) FormatResponse() *Response {
 	if m.Solo {
 		resource := formatResource(&m.Data[0])
 		response := &Response{Data: resource}
-		return response, nil
+		return response
 	}
 
 	meta := &ResponseMetadata{
@@ -112,7 +112,7 @@ func (m *ExampleDomainModel) FormatResponse() (*Response, error) {
 		Data: data,
 	}
 
-	return response, nil
+	return response
 }
 
 // serializeResource
