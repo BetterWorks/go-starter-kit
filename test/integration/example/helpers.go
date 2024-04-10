@@ -3,14 +3,9 @@ package exampletest
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"testing"
-	"time"
 
 	"github.com/BetterWorks/go-starter-kit/internal/core/entities"
-	"github.com/BetterWorks/go-starter-kit/test/testutils"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/stretchr/testify/assert"
 )
 
 const routePrefix = "/domain/examples"
@@ -52,17 +47,4 @@ func insertRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
 	}
 
 	return entity, nil
-}
-
-func pollUntilServerStartup(t *testing.T, timeoutSeconds int, intervalMilliseconds int) {
-	t.Log("polling until health check passes")
-	assert.Eventually(t, func() bool {
-		req := testutils.SetRequestData("GET", "/domain/health", nil, nil)
-		if res, err := http.DefaultClient.Do(req); err != nil {
-			t.Log(err)
-		} else if res.StatusCode == 200 {
-			return true
-		}
-		return false
-	}, time.Duration(timeoutSeconds)*time.Second, time.Duration(intervalMilliseconds)*time.Millisecond)
 }

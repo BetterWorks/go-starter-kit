@@ -1,24 +1,22 @@
 package exampletest
 
 import (
-	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
 	"github.com/BetterWorks/go-starter-kit/test/testutils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/sync/errgroup"
 )
 
 type BaseSuite struct {
 	suite.Suite
-	method     string
-	httpServer *httpserver.Server
-	db         *pgxpool.Pool
-	resolver   *resolver.Resolver
+	method   string
+	handler  http.Handler
+	db       *pgxpool.Pool
+	resolver *resolver.Resolver
 }
 
 func TestBaseSuite(t *testing.T) {
@@ -32,22 +30,22 @@ func (s *BaseSuite) SetupSuite() {
 	}
 
 	s.method = "GET"
-	s.httpServer = server
+	s.handler = server.Server.Handler
 	s.db = db
 	s.resolver = resolver
 }
 
 func (s *BaseSuite) SetupTest() {
-	g, _ := errgroup.WithContext(context.Background())
+	// g, _ := errgroup.WithContext(context.Background())
 
-	g.Go(func() error {
-		if err := s.httpServer.Serve(); err != nil {
-			return err
-		}
+	// g.Go(func() error {
+	// 	if err := s.httpServer.Serve(); err != nil {
+	// 		return err
+	// 	}
 
-		return nil
-	})
-	pollUntilServerStartup(s.T(), 5, 500)
+	// 	return nil
+	// })
+	// pollUntilServerStartup(s.T(), 5, 500)
 }
 
 func (s *BaseSuite) TearDownTest() {
@@ -66,11 +64,11 @@ func (s *BaseSuite) TestResourceList() {
 
 	for _, test := range tests {
 		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			s.T().Log(err)
-		}
+		rec := httptest.NewRecorder()
 
+		s.handler.ServeHTTP(rec, req)
+
+		res := rec.Result()
 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
 	}
 }
