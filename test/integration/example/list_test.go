@@ -1,85 +1,104 @@
 package exampletest
 
-// import (
-// 	"testing"
+import (
+	"context"
+	"net/http"
+	"testing"
+	"time"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-// 	"github.com/BetterWorks/go-starter-kit/internal/types"
-// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
+	"github.com/BetterWorks/go-starter-kit/test/testutils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"golang.org/x/sync/errgroup"
+)
 
-// type ListSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	records  []*types.ExampleEntity
-// }
+type ListSuite struct {
+	suite.Suite
+	method     string
+	httpServer *httpserver.Server
+	db         *pgxpool.Pool
+	resolver   *resolver.Resolver
+	records    []*models.ExampleDomainModel
+}
 
-// func TestListSuite(t *testing.T) {
-// 	suite.Run(t, &ListSuite{})
-// }
+func TestListSuite(t *testing.T) {
+	suite.Run(t, &ListSuite{})
+}
 
-// // SetupSuite runs setup before all suite tests
-// func (s *ListSuite) SetupSuite() {
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+func (s *ListSuite) SetupSuite() {
+	server, db, resolver, err := testutils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	s.method = "GET"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+	s.method = "GET"
+	s.httpServer = server
+	s.db = db
+	s.resolver = resolver
+}
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *ListSuite) TearDownSuite() {
-// 	//
-// }
+func (s *ListSuite) SetupTest() {
+	records := make([]*models.ExampleDomainModel, 0, 4)
+	for i := 0; i < 4; i++ {
+		attrs := fx.NewExampleRequestAttributesBuilder().Build()
 
-// // SetupTest runs setup before each test
-// func (s *ListSuite) SetupTest() {
-// 	records := make([]*types.ExampleEntity, 0, 4)
+		repo := s.resolver.ExampleRepository()
+		record, err := repo.Create(context.Background(), attrs)
 
-// 	for range records {
-// 		record, err := insertRecord(s.db)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
-// 		records = append(records, record)
-// 		s.T().Log("\n\nHERE\n\n")
-// 	}
-// }
+		if err != nil {
+			s.T().Log(err)
+		}
 
-// // TearDownTest runs teardown after each test
-// func (s *ListSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+		records = append(records, record)
+	}
+	s.records = records
+	g, _ := errgroup.WithContext(context.Background())
 
-// func (s *ListSuite) TestResourceList() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource list succeeds (200)",
-// 			Route:       routePrefix,
-// 			Request:     utils.Request{},
-// 			Expected:    utils.Expected{Code: 200},
-// 		},
-// 	}
+	g.Go(func() error {
+		if err := s.httpServer.Serve(); err != nil {
+			return err
+		}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, nil, nil)
-// 		msTimeout := 1000
+		return nil
+	})
+	s.T().Log("polling until health check passes")
+	assert.Eventually(s.T(), func() bool {
+		req := testutils.SetRequestData("GET", "/domain/health", nil, nil)
+		if res, err := http.DefaultClient.Do(req); err != nil {
+			s.T().Log(err)
+		} else if res.StatusCode == 200 {
+			return true
+		}
+		return false
+	}, 5*time.Second, 500*time.Millisecond)
+}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+func (s *ListSuite) TearDownTest() {
+	testutils.Cleanup(s.resolver)
+}
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+func (s *ListSuite) TestResourceList() {
+	tests := []testutils.Setup{
+		{
+			Description: "resource list succeeds (200)",
+			Route:       "/domain/examples",
+			Request:     testutils.Request{},
+			Expected:    testutils.Expected{Code: 200},
+		},
+	}
+
+	for _, test := range tests {
+		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			s.T().Log(err)
+		}
+
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}

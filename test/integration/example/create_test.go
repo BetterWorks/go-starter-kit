@@ -1,92 +1,97 @@
 package exampletest
 
-// import (
-// 	"bytes"
-// 	"net/http"
-// 	"testing"
+import (
+	"context"
+	"net/http"
+	"testing"
+	"time"
 
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
+	"github.com/BetterWorks/go-starter-kit/test/testutils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"golang.org/x/sync/errgroup"
+)
 
-// type CreateSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *http.Server
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// }
+type CreateSuite struct {
+	suite.Suite
+	method     string
+	httpServer *httpserver.Server
+	db         *pgxpool.Pool
+	resolver   *resolver.Resolver
+}
 
-// func TestCreateSuite(t *testing.T) {
-// 	suite.Run(t, &CreateSuite{})
-// }
+func TestCreateSuite(t *testing.T) {
+	suite.Run(t, &CreateSuite{})
+}
 
-// // SetupSuite runs setup before all suite tests
-// func (s *CreateSuite) SetupSuite() {
-// 	s.T().Log("SetupSuite")
+func (s *CreateSuite) SetupSuite() {
+	server, db, resolver, err := testutils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	server, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	s.method = "POST"
+	s.httpServer = server
+	s.db = db
+	s.resolver = resolver
+}
 
-// 	s.method = "POST"
-// 	s.app = server.App.Server
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+func (s *CreateSuite) SetupTest() {
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *CreateSuite) TearDownSuite() {
-// 	s.T().Log("TearDownSuite")
-// }
+	g, _ := errgroup.WithContext(context.Background())
 
-// // SetupTest runs setup before each test
-// func (s *CreateSuite) SetupTest() {
-// 	s.T().Log("SetupTest")
-// }
+	g.Go(func() error {
+		if err := s.httpServer.Serve(); err != nil {
+			return err
+		}
 
-// // TearDownTest runs teardown after each test
-// func (s *CreateSuite) TearDownTest() {
-// 	s.T().Log("TearDownTest")
-// }
+		return nil
+	})
+	s.T().Log("polling until health check passes")
+	assert.Eventually(s.T(), func() bool {
+		req := testutils.SetRequestData("GET", "/domain/health", nil, nil)
+		if res, err := http.DefaultClient.Do(req); err != nil {
+			s.T().Log(err)
+		} else if res.StatusCode == 200 {
+			return true
+		}
+		return false
+	}, 5*time.Second, 500*time.Millisecond)
+}
 
-// func (s *CreateSuite) TestResourceCreate() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource create succeeds (201) with valid payload",
-// 			Route:       routePrefix,
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"attributes": {
-// 							"title": "Resource Title",
-// 							"description": "Resource Description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`)),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 201},
-// 		},
-// 	}
+func (s *CreateSuite) TearDownTest() {
+	testutils.Cleanup(s.resolver)
+}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
+func (s *CreateSuite) TestResourceDetail() {
+	tests := []testutils.Setup{
+		{
+			Description: "resource create succeeds (200)",
+			Route:       "/domain/examples/",
+			Request: testutils.Request{
+				Body: fx.ComposeJSONBody(
+					&models.ExampleRequest{
+						Data: &models.ExampleRequestResource{
+							Attributes: *fx.NewExampleRequestAttributesBuilder().Build(),
+						},
+					}),
+			},
+			Expected: testutils.Expected{Code: 201},
+		},
+	}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+	for _, test := range tests {
+		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			s.T().Log(err)
+		}
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}

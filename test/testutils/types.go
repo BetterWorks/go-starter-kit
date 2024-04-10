@@ -13,6 +13,7 @@ type Request struct {
 
 type Setup struct {
 	Description string
+	Method      string
 	Route       string
 	Request     Request
 	Expected    Expected

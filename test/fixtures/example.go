@@ -17,7 +17,7 @@ type ExampleRequestAttributesBuilder struct {
 func NewExampleRequestAttributesBuilder() *ExampleRequestAttributesBuilder {
 	return &ExampleRequestAttributesBuilder{
 		description: fake.Phrase(),
-		status:      fake.Uint32(),
+		status:      uint32(fake.Number(1, 100)),
 		title:       fake.Word(),
 	}
 }

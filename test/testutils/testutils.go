@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
+	"os"
 
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
@@ -31,6 +31,10 @@ func Cleanup(r *resolver.Resolver) error {
 
 // InitializeApp creates a new Resolver from the given config and returns a reference to the HTTP Server instance, the DB driver, and the Resolver itself
 func InitializeApp(conf *resolver.Config) (*httpserver.Server, *pgxpool.Pool, *resolver.Resolver, error) {
+	port := os.Getenv("HTTP_SERVER_PORT")
+	if port == "" {
+		os.Setenv("HTTP_SERVER_PORT", "9001")
+	}
 	r := resolver.NewResolver(context.Background(), conf)
 	r.Load(resolver.LoadEntries.HTTPServer)
 	server := r.HTTPServer()
@@ -41,7 +45,13 @@ func InitializeApp(conf *resolver.Config) (*httpserver.Server, *pgxpool.Pool, *r
 
 // SetRequestData creates a new HTTP Request instance from the given data
 func SetRequestData(method, route string, body io.Reader, headers map[string]string) *http.Request {
-	req := httptest.NewRequest(method, route, body)
+	port := os.Getenv("HTTP_SERVER_PORT")
+	if port == "" {
+		os.Setenv("HTTP_SERVER_PORT", "9001")
+		port = "9001"
+	}
+	url := fmt.Sprintf("http://localhost:%s%s", port, route)
+	req, _ := http.NewRequest(method, url, body)
 	if headers != nil {
 		req = SetRequestHeaders(req, headers)
 	}
