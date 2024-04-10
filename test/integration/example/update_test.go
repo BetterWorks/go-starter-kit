@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/BetterWorks/go-starter-kit/internal/core/models"
 	"github.com/BetterWorks/go-starter-kit/internal/http/httpserver"
@@ -13,7 +12,6 @@ import (
 	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
 	"github.com/BetterWorks/go-starter-kit/test/testutils"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/sync/errgroup"
 )
@@ -63,16 +61,7 @@ func (s *UpdateSuite) SetupTest() {
 
 		return nil
 	})
-	s.T().Log("polling until health check passes")
-	assert.Eventually(s.T(), func() bool {
-		req := testutils.SetRequestData("GET", "/domain/health", nil, nil)
-		if res, err := http.DefaultClient.Do(req); err != nil {
-			s.T().Log(err)
-		} else if res.StatusCode == 200 {
-			return true
-		}
-		return false
-	}, 5*time.Second, 500*time.Millisecond)
+	pollUntilServerStartup(s.T(), 5, 500)
 }
 
 func (s *UpdateSuite) TearDownTest() {
