@@ -35,19 +35,6 @@ func (s *BaseSuite) SetupSuite() {
 	s.resolver = resolver
 }
 
-func (s *BaseSuite) SetupTest() {
-	// g, _ := errgroup.WithContext(context.Background())
-
-	// g.Go(func() error {
-	// 	if err := s.httpServer.Serve(); err != nil {
-	// 		return err
-	// 	}
-
-	// 	return nil
-	// })
-	// pollUntilServerStartup(s.T(), 5, 500)
-}
-
 func (s *BaseSuite) TearDownTest() {
 	testutils.Cleanup(s.resolver)
 }
