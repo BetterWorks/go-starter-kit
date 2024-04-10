@@ -1,81 +1,96 @@
 package exampletest
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-// 	"github.com/BetterWorks/go-starter-kit/internal/types"
-// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
+	"github.com/BetterWorks/go-starter-kit/test/testutils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/suite"
+)
 
-// type DetailSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type DetailSuite struct {
+	suite.Suite
+	method   string
+	handler  http.Handler
+	db       *pgxpool.Pool
+	resolver *resolver.Resolver
+	record   *models.ExampleDomainModel
+}
 
-// func TestDetailSuite(t *testing.T) {
-// 	suite.Run(t, &DetailSuite{})
-// }
+func TestDetailSuite(t *testing.T) {
+	suite.Run(t, &DetailSuite{})
+}
 
-// // SetupSuite runs setup before all suite tests
-// func (s *DetailSuite) SetupSuite() {
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+func (s *DetailSuite) SetupSuite() {
+	server, db, resolver, err := testutils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	s.method = "GET"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+	s.method = "GET"
+	s.handler = server.Server.Handler
+	s.db = db
+	s.resolver = resolver
+}
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *DetailSuite) TearDownSuite() {
-// 	//
-// }
+func (s *DetailSuite) SetupTest() {
+	attrs := fx.NewExampleRequestAttributesBuilder().Build()
 
-// // SetupTest runs setup before each test
-// func (s *DetailSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+	repo := s.resolver.ExampleRepository()
+	record, err := repo.Create(context.Background(), attrs)
 
-// // TearDownTest runs teardown after each test
-// func (s *DetailSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// func (s *DetailSuite) TestResourceDetail() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource detail succeeds (200)",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request:     utils.Request{},
-// 			Expected:    utils.Expected{Code: 200},
-// 		},
-// 	}
+	s.record = record
+}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, nil, nil)
-// 		msTimeout := 1000
+func (s *DetailSuite) TearDownTest() {
+	testutils.Cleanup(s.resolver)
+}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+func (s *DetailSuite) TestResourceDetail() {
+	tests := []testutils.Setup{
+		{
+			Description: "resource detail succeeds (200)",
+			Route:       fmt.Sprintf("/domain/examples/%s", s.record.Data[0].Attributes.ID.String()),
+			Request:     testutils.Request{},
+			Expected:    testutils.Expected{Code: 200},
+		},
+	}
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+	for _, test := range tests {
+		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
+		rec := httptest.NewRecorder()
+
+		s.handler.ServeHTTP(rec, req)
+
+		res := rec.Result()
+
+		// b, err := io.ReadAll(res.Body)
+		// if err != nil {
+		// 	s.T().Error(err)
+		// }
+		// responseBody := string(b)
+
+		// expectedResponseBody := fmt.Sprintf("%s\n", fx.ComposeJSONBody(
+		// 	fx.NewJSONAPIErrorResponseBuilder().
+		// 		Errors([]models.ErrorData{*fx.NewJSONAPIErrorDataBuilder().
+		// 			Detail("error parsing resource id").
+		// 			Build()}).
+		// 		Build(),
+		// ).String())
+
+		// fmt.Printf("res: %v\n", responseBody)
+
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}

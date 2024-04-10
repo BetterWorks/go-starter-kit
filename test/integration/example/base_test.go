@@ -5,15 +5,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/BetterWorks/go-starter-kit/internal/core/models"
 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
 	"github.com/BetterWorks/go-starter-kit/test/testutils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
 )
 
-type CreateSuite struct {
+type BaseSuite struct {
 	suite.Suite
 	method   string
 	handler  http.Handler
@@ -21,40 +19,33 @@ type CreateSuite struct {
 	resolver *resolver.Resolver
 }
 
-func TestCreateSuite(t *testing.T) {
-	suite.Run(t, &CreateSuite{})
+func TestBaseSuite(t *testing.T) {
+	suite.Run(t, &BaseSuite{})
 }
 
-func (s *CreateSuite) SetupSuite() {
+func (s *BaseSuite) SetupSuite() {
 	server, db, resolver, err := testutils.InitializeApp(nil)
 	if err != nil {
 		s.T().Log(err)
 	}
 
-	s.method = "POST"
+	s.method = "GET"
 	s.handler = server.Server.Handler
 	s.db = db
 	s.resolver = resolver
 }
 
-func (s *CreateSuite) TearDownTest() {
+func (s *BaseSuite) TearDownTest() {
 	testutils.Cleanup(s.resolver)
 }
 
-func (s *CreateSuite) TestResourceDetail() {
+func (s *BaseSuite) TestResourceList() {
 	tests := []testutils.Setup{
 		{
-			Description: "resource create succeeds (200)",
-			Route:       "/domain/examples/",
-			Request: testutils.Request{
-				Body: fx.ComposeJSONBody(
-					&models.ExampleRequest{
-						Data: &models.ExampleRequestResource{
-							Attributes: *fx.NewExampleRequestAttributesBuilder().Build(),
-						},
-					}),
-			},
-			Expected: testutils.Expected{Code: 201},
+			Description: "resource list succeeds (200)",
+			Route:       "/domain/",
+			Request:     testutils.Request{},
+			Expected:    testutils.Expected{Code: 200},
 		},
 	}
 

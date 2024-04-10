@@ -1,100 +1,87 @@
 package exampletest
 
-// import (
-// 	"bytes"
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-// 	"github.com/BetterWorks/go-starter-kit/internal/types"
-// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
+	"github.com/BetterWorks/go-starter-kit/test/testutils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/suite"
+)
 
-// type UpdateSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type UpdateSuite struct {
+	suite.Suite
+	method   string
+	handler  http.Handler
+	db       *pgxpool.Pool
+	resolver *resolver.Resolver
+	record   *models.ExampleDomainModel
+}
 
-// func TestUpdateSuite(t *testing.T) {
-// 	suite.Run(t, &UpdateSuite{})
-// }
+func TestUpdateSuite(t *testing.T) {
+	suite.Run(t, &UpdateSuite{})
+}
 
-// // SetupSuite runs setup before all suite tests
-// func (s *UpdateSuite) SetupSuite() {
-// 	s.T().Log("SetupSuite")
+func (s *UpdateSuite) SetupSuite() {
+	server, db, resolver, err := testutils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	s.method = "PUT"
+	s.handler = server.Server.Handler
+	s.db = db
+	s.resolver = resolver
+}
 
-// 	s.method = "PUT"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+func (s *UpdateSuite) SetupTest() {
+	attrs := fx.NewExampleRequestAttributesBuilder().Build()
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *UpdateSuite) TearDownSuite() {
-// 	s.T().Log("TearDownSuite")
-// }
+	repo := s.resolver.ExampleRepository()
+	record, err := repo.Create(context.Background(), attrs)
 
-// // SetupTest runs setup before each test
-// func (s *UpdateSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// // TearDownTest runs teardown after each test
-// func (s *UpdateSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+	s.record = record
+}
 
-// func (s *UpdateSuite) TestResourceUpdate() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource update succeeds (200) with valid payload",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(fmt.Sprintf(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"id": "%s",
-// 						"attributes": {
-// 							"title": "Resource Title",
-// 							"description": "Updated resource description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`, s.record.ID.String()))),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 200},
-// 		},
-// 	}
+func (s *UpdateSuite) TearDownTest() {
+	testutils.Cleanup(s.resolver)
+}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
+func (s *UpdateSuite) TestResourceDetail() {
+	tests := []testutils.Setup{
+		{
+			Description: "resource update succeeds (200)",
+			Route:       fmt.Sprintf("/domain/examples/%s", s.record.Data[0].Attributes.ID.String()),
+			Request: testutils.Request{
+				Body: fx.ComposeJSONBody(
+					&models.ExampleRequest{
+						Data: &models.ExampleRequestResource{
+							Attributes: *fx.NewExampleRequestAttributesBuilder().Build(),
+						},
+					}),
+			},
+			Expected: testutils.Expected{Code: 200},
+		},
+	}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+	for _, test := range tests {
+		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
+		rec := httptest.NewRecorder()
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+		s.handler.ServeHTTP(rec, req)
+
+		res := rec.Result()
+
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}

@@ -1,81 +1,79 @@
 package exampletest
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/BetterWorks/go-starter-kit/internal/resolver"
-// 	"github.com/BetterWorks/go-starter-kit/internal/types"
-// 	utils "github.com/BetterWorks/go-starter-kit/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/BetterWorks/go-starter-kit/internal/core/models"
+	"github.com/BetterWorks/go-starter-kit/internal/resolver"
+	fx "github.com/BetterWorks/go-starter-kit/test/fixtures"
+	"github.com/BetterWorks/go-starter-kit/test/testutils"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/suite"
+)
 
-// type DeleteSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type DeleteSuite struct {
+	suite.Suite
+	method   string
+	handler  http.Handler
+	db       *pgxpool.Pool
+	resolver *resolver.Resolver
+	record   *models.ExampleDomainModel
+}
 
-// func TestDeleteSuite(t *testing.T) {
-// 	suite.Run(t, &DeleteSuite{})
-// }
+func TestDeleteSuite(t *testing.T) {
+	suite.Run(t, &DeleteSuite{})
+}
 
-// // SetupSuite runs setup before all suite tests
-// func (s *DeleteSuite) SetupSuite() {
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+func (s *DeleteSuite) SetupSuite() {
+	server, db, resolver, err := testutils.InitializeApp(nil)
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// 	s.method = "DELETE"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+	s.method = "DELETE"
+	s.handler = server.Server.Handler
+	s.db = db
+	s.resolver = resolver
+}
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *DeleteSuite) TearDownSuite() {
-// 	//
-// }
+func (s *DeleteSuite) SetupTest() {
+	attrs := fx.NewExampleRequestAttributesBuilder().Build()
 
-// // SetupTest runs setup before each test
-// func (s *DeleteSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+	repo := s.resolver.ExampleRepository()
+	record, err := repo.Create(context.Background(), attrs)
 
-// // TearDownTest runs teardown after each test
-// func (s *DeleteSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+	if err != nil {
+		s.T().Log(err)
+	}
 
-// func (s *DeleteSuite) TestResourceDelete() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource delete succeeds (204)",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request:     utils.Request{},
-// 			Expected:    utils.Expected{Code: 204},
-// 		},
-// 	}
+	s.record = record
+}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, nil, nil)
-// 		msTimeout := 1000
+func (s *DeleteSuite) TearDownTest() {
+	testutils.Cleanup(s.resolver)
+}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+func (s *DeleteSuite) TestResourceDetail() {
+	tests := []testutils.Setup{
+		{
+			Description: "resource delete succeeds (204)",
+			Route:       fmt.Sprintf("/domain/examples/%s", s.record.Data[0].Attributes.ID.String()),
+			Request:     testutils.Request{},
+			Expected:    testutils.Expected{Code: 204},
+		},
+	}
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+	for _, test := range tests {
+		req := testutils.SetRequestData(s.method, test.Route, test.Request.Body, nil)
+		rec := httptest.NewRecorder()
+
+		s.handler.ServeHTTP(rec, req)
+
+		res := rec.Result()
+		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
+	}
+}
